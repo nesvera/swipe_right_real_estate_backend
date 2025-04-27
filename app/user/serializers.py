@@ -17,6 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
         read_only_fields = ["id"]
 
+
 class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer for user object."""
 
@@ -24,6 +25,19 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ["password", "name"]
         extra_kwargs = {"password": {"write_only": True}}
+        read_only_fields = ["id"]
+
+
+class UserPartialUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for user object."""
+
+    class Meta:
+        model = get_user_model()
+        fields = ["password", "name"]
+        extra_kwargs = {
+            "password": {"write_only": True, "required": False},
+            "name": {"required": False},
+        }
         read_only_fields = ["id"]
 
 

@@ -3,7 +3,7 @@ Views for user API.
 """
 
 from django.contrib.auth import get_user_model
-from rest_framework import generics, permissions, status
+from rest_framework import permissions, mixins, status, viewsets
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -11,11 +11,13 @@ from rest_framework.settings import api_settings
 from rest_framework.views import APIView
 from rest_framework_simplejwt import authentication
 from rest_framework.serializers import ModelSerializer
-from rest_framework import mixins, status, permissions, viewsets, generics
-from rest_framework.request import Request
-from rest_framework.response import Response
 
-from user.serializers import UserSerializer, UserUpdateSerializer, AuthTokenSerializer
+from user.serializers import (
+    UserSerializer,
+    UserUpdateSerializer,
+    UserPartialUpdateSerializer,
+    AuthTokenSerializer,
+)
 from user.utils import validate_password
 
 
@@ -38,8 +40,10 @@ class ManageUserView(
 
     def get_serializer_class(self) -> ModelSerializer:
         """Overwrite get_serializer_class"""
-        if self.action == "update" or self.action == "partial_update":
+        if self.action == "update":
             return UserUpdateSerializer
+        elif self.action == "partial_update":
+            return UserPartialUpdateSerializer
         else:
             return self.serializer_class
 
@@ -72,6 +76,7 @@ class ManageUserView(
             )
 
         user_obj = get_user_model().objects.get(id=request_user.id)
+        user_obj.set_password(new_password)
         user_obj.save()
 
         user_obj_filter = get_user_model().objects.filter(id=request_user.id)
@@ -117,7 +122,7 @@ class CreateUser(APIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
 
-    def post(self, request: Request, format=None):
+    def post(self, request: Request, format=None) -> Response:
         serializer = UserSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
