@@ -9,10 +9,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
-
-CREATE_USER_URL = reverse("user:create")
-AUTH_URL = reverse("user:auth")
-USER_URL = reverse("user:user")
+REFRESH_URL = reverse("user:refresh")
 
 
 def create_user(**params):
@@ -27,11 +24,12 @@ class PublicApiTests(TestCase):
         """Test creating a user is successful."""
         payload = {
             "email": "test@example.com",
-            "password": "mysecure123",
+            "password": "Mysecure123$",
             "name": "my user"
         }
         client = APIClient()
-        res = client.post(CREATE_USER_URL, payload)
+        url = reverse("user:create")
+        res = client.post(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertNotIn("password", res.data)
@@ -49,7 +47,8 @@ class PublicApiTests(TestCase):
         create_user(**payload)
 
         client = APIClient()
-        res = client.post(CREATE_USER_URL, payload)
+        url = reverse("user:create")
+        res = client.post(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -62,7 +61,8 @@ class PublicApiTests(TestCase):
         }
 
         client = APIClient()
-        res = client.post(CREATE_USER_URL, payload)
+        url = reverse("user:create")
+        res = client.post(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         user_exists = get_user_model().objects.filter(
@@ -85,9 +85,11 @@ class PublicApiTests(TestCase):
         }
 
         client = APIClient()
-        res = client.post(AUTH_URL, payload)
+        url = reverse("user:auth")
+        res = client.post(url, payload)
 
-        self.assertIn("token", res.data)
+        self.assertIn("refresh", res.data)
+        self.assertIn("access", res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_create_token_bad_credentials(self):
@@ -103,10 +105,11 @@ class PublicApiTests(TestCase):
         }
 
         client = APIClient()
-        res = client.post(AUTH_URL, payload)
+        url = reverse("user:auth")
+        res = client.post(url, payload)
 
         self.assertNotIn("token", res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_token_blank_password(self):
         """Test authentication without password raises error."""
@@ -116,15 +119,23 @@ class PublicApiTests(TestCase):
         }
 
         client = APIClient()
-        res = client.post(AUTH_URL, payload)
+        url = reverse("user:auth")
+        res = client.post(url, payload)
 
         self.assertNotIn("token", res.data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_retrieve_user_unauthorized(self):
         """Test authentication is required for users."""
+        user = create_user(
+            email="myuser@myemail.com",
+            password="Securepassword123$",
+            name="My user"
+        )
+
         client = APIClient()
-        res = client.get(USER_URL)
+        url = reverse("user:user_info-detail", args=[user.id])
+        res = client.get(url)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -136,7 +147,7 @@ class PrivateApiTests(TestCase):
     def setUpTestData(cls) -> None:
         cls.user = create_user(
             email="myuser@myemail.com",
-            password="securepassword123",
+            password="Securepassword123$",
             name="My user"
         )
 
@@ -145,19 +156,26 @@ class PrivateApiTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
-        res = client.get(USER_URL)
+        url = reverse("user:user_info-detail", args=[self.user.id])
+        res = client.get(url)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, {
-            "name": self.user.name,
-            "email": self.user.email
-        })
+
+        user_id = res.data.get("id")
+        user_name = res.data.get("name")
+        user_email = res.data.get("email")
+
+        self.assertEqual(user_id, str(self.user.id))
+        self.assertEqual(user_name, self.user.name)
+        self.assertEqual(user_email, self.user.email)
 
     def test_post_me_not_allowed(self):
         """Test POST is not allowed for the me endpoint."""
         client = APIClient()
         client.force_authenticate(user=self.user)
-        res = client.post(USER_URL, {})
+
+        url = reverse("user:user_info-detail", args=[self.user.id])
+        res = client.post(url, {})
 
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -165,14 +183,32 @@ class PrivateApiTests(TestCase):
         """Test updating user profile."""
         payload = {
             "name": "new name",
-            "password": "newpassword123"
+            "password": "Newpassword123$"
         }
 
         client = APIClient()
         client.force_authenticate(user=self.user)
-        res = client.patch(USER_URL, payload)
+
+        url = reverse("user:user_info-detail", args=[self.user.id])
+        res = client.patch(url, payload)
 
         self.user.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(self.user.name, payload.get("name"))
         self.assertTrue(self.user.check_password(payload.get("password")))
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_update_user_fail_bad_password(self):
+        """Test updating user profile with password not matching security policy """
+        payload = {
+            "name": "new name",
+            "password": "Newpassw"
+        }
+
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        url = reverse("user:user_info-detail", args=[self.user.id])
+        res = client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
