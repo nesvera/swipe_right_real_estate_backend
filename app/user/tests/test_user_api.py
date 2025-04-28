@@ -119,7 +119,7 @@ class PublicApiTests(TestCase):
         )
 
         client = APIClient()
-        url = reverse("user:user_info-detail", args=[user.id])
+        url = reverse("user:user_info")
         res = client.get(url)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -139,7 +139,7 @@ class PrivateApiTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
-        url = reverse("user:user_info-detail", args=[self.user.id])
+        url = reverse("user:user_info")
         res = client.get(url)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -157,7 +157,7 @@ class PrivateApiTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
-        url = reverse("user:user_info-detail", args=[self.user.id])
+        url = reverse("user:user_info")
         res = client.post(url, {})
 
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -171,7 +171,7 @@ class PrivateApiTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
-        url = reverse("user:user_info-detail", args=[self.user.id])
+        url = reverse("user:user_info")
         res = client.patch(url, payload)
 
         self.user.refresh_from_db()
@@ -185,7 +185,7 @@ class PrivateApiTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
-        url = reverse("user:user_info-detail", args=[self.user.id])
+        url = reverse("user:user_info")
         res = client.patch(url, payload)
 
         self.user.refresh_from_db()
@@ -199,7 +199,7 @@ class PrivateApiTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
-        url = reverse("user:user_info-detail", args=[self.user.id])
+        url = reverse("user:user_info")
         res = client.patch(url, payload)
 
         self.user.refresh_from_db()
@@ -214,7 +214,7 @@ class PrivateApiTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
-        url = reverse("user:user_info-detail", args=[self.user.id])
+        url = reverse("user:user_info")
         res = client.patch(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
@@ -228,7 +228,7 @@ class PrivateApiTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
-        url = reverse("user:user_info-detail", args=[self.user.id])
+        url = reverse("user:user_info")
         res = client.put(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
@@ -240,7 +240,7 @@ class PrivateApiTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
-        url = reverse("user:user_info-detail", args=[self.user.id])
+        url = reverse("user:user_info")
         res = client.put(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
@@ -252,7 +252,7 @@ class PrivateApiTests(TestCase):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
-        url = reverse("user:user_info-detail", args=[self.user.id])
+        url = reverse("user:user_info")
         res = client.put(url, payload)
 
         self.user.refresh_from_db()
