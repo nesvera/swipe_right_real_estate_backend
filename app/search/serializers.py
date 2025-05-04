@@ -15,17 +15,17 @@ class SearchCreateSerializer(serializers.Serializer):
     # property_type  = serializers.ListField(child=)
     property_type = serializers.ListField(
         child=serializers.ChoiceField(choices=RealEstate.PropertyType),
-        allow_empty=False,
+        allow_empty=True,
     )
     transaction_type = serializers.ListField(
         child=serializers.ChoiceField(choices=RealEstate.TransactionType),
-        allow_empty=False,
+        allow_empty=True,
     )
     city = serializers.ListField(
-        child=serializers.CharField(max_length=100), allow_empty=False
+        child=serializers.CharField(max_length=100), allow_empty=True
     )
     neighborhood = serializers.ListField(
-        child=serializers.CharField(max_length=100), allow_empty=False
+        child=serializers.CharField(max_length=100), allow_empty=True
     )
     bedroom_quantity = serializers.IntegerField(min_value=0)
     suite_quantity = serializers.IntegerField(min_value=0)

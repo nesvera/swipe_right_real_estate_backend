@@ -37,7 +37,14 @@ class SearchView(
 
     # TODO - need to understand better what is the purpose of it
     def get_serializer_class(self):
-        return
+        if self.action == "create":
+            return SearchCreateSerializer
+        elif self.action == "list":
+            return SearchListSerializer
+        elif self.action == "retrieve":
+            return SearchRetrieveSerializer
+        else:
+            return SearchRetrieveSerializer
 
     def get_queryset(self) -> QuerySet:
         return self.queryset
