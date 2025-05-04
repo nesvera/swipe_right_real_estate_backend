@@ -18,8 +18,6 @@ from search import services
 
 from common.errors.errors import SerializationError, DeserializationError
 
-from search.task import slow_task
-
 
 class SearchView(
     mixins.CreateModelMixin,

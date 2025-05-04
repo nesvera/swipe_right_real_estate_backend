@@ -12,8 +12,6 @@ from search.serializers import (
 
 from user.models import User
 
-from search.task import slow_task
-
 from common.errors.errors import SerializationError, DeserializationError
 
 
