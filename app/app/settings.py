@@ -146,7 +146,7 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://umnovolar.com.br"
+    "https://umnovolar.com.br",
 ]
 
 SIMPLE_JWT = {
@@ -158,5 +158,14 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'COMPONENT_SPLIT_REQUEST': True,
+    "COMPONENT_SPLIT_REQUEST": True,
 }
+
+RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST")
+RABBITMQ_PORT = os.environ.get("RABBITMQ_PORT")
+RABBITMQ_USER = os.environ.get("RABBITMQ_DEFAULT_USER")
+RABBITMQ_PASS = os.environ.get("RABBITMQ_DEFAULT_PASS")
+
+CELERY_BROKER_URL = (
+    f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@{RABBITMQ_HOST}:{RABBITMQ_PORT}//"
+)
