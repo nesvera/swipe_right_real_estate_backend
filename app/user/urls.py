@@ -1,4 +1,4 @@
-""" "
+"""
 URL mappings for user API.
 """
 
@@ -7,7 +7,6 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
-from rest_framework.routers import DefaultRouter
 
 from user import views
 
@@ -23,9 +22,8 @@ urlpatterns = [
             {
                 "get": "retrieve",
                 "patch": "partial_update",
-                "put": "update",
             }
-        ), name="user_info"
+        ),
+        name="user_info",
     ),
-    # path("user/v1/user", include(user_info_router.urls)),
 ]

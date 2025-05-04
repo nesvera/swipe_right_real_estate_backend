@@ -40,6 +40,10 @@ INSTALLED_APPS = [
     "corsheaders",
     "core",
     "user",
+    "real_estate",
+    "real_estate_agency",
+    "search",
+    "radar",
 ]
 
 MIDDLEWARE = [

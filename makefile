@@ -5,7 +5,7 @@ run:
 	docker-compose up
 
 test:
-	docker-compose run --rm backend sh -c "python -Wa manage.py test --noinput"
+	docker-compose run --rm backend sh -c "python -Wa manage.py test --noinput $(path)"
 
 test-shuffle: only in django 4.0 (update later)
 	docker-compose run --rm backend sh -c "python -Wa manage.py test --shuffle"

@@ -32,4 +32,6 @@ urlpatterns = [
         name="api-docs",
     ),
     path("api/", include("user.urls")),
+    path("api/", include("radar.urls")),
+    path("api/", include("search.urls"))
 ]

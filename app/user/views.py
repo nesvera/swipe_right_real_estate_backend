@@ -55,36 +55,6 @@ class ManageUserView(
         out_serializer = UserSerializer(user_obj)
         return Response(out_serializer.data, status=status.HTTP_200_OK)
 
-    def update(self, request: Request, pk=None) -> Response:
-        request_user = request.user
-        if request_user is None:
-            return Response("User not found", status=status.HTTP_400_BAD_REQUEST)
-
-        serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        request_data = serializer.validated_data
-        new_password = request_data.pop("password")
-
-        is_password_valid = validate_password(new_password)
-        if not is_password_valid:
-            return Response(
-                "Password does not meet security requirements",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        user_obj = get_user_model().objects.get(id=request_user.id)
-        user_obj.set_password(new_password)
-        user_obj.save()
-
-        user_obj_filter = get_user_model().objects.filter(id=request_user.id)
-        user_obj_filter.update(**request_data)
-
-        out_serializer = UserSerializer(user_obj)
-        return Response(out_serializer.data, status=status.HTTP_200_OK)
-
     def partial_update(self, request: Request, pk=None) -> Response:
         request_user = request.user
         if request_user is None:
