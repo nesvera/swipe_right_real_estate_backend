@@ -35,8 +35,16 @@ class TestModel(TestCase):
             "garage_slots_quantity": 1,
             "price": 100.0,
             "area": 50.0,
+            "area_total": 55.0,
             "available": True,
             "agency": agency,
+            "cond_price": 12.0,
+            "description": "some nice real estate to be sold",
+            "images_url": [
+                "https://some-nice-image1.png",
+                "https://some-nice-image2.png",
+                "https://some-nice-image3.png",
+            ]
         }
 
         RealEstate.objects.create(**model_dict)

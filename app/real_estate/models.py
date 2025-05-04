@@ -26,6 +26,9 @@ class RealEstate(models.Model):
         BUY = "buy", "buy"
         RENT = "rent", "rent"
 
+    def get_images_url_default():
+        return list()
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     reference_code = models.CharField(max_length=50)
@@ -43,8 +46,15 @@ class RealEstate(models.Model):
     garage_slots_quantity = models.IntegerField()
     price = models.FloatField()
     area = models.FloatField()
+    area_total = models.FloatField()
     available = models.BooleanField()
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE)
+    cond_price = models.FloatField()
+    description = models.CharField(max_length=2000)
+    images_url = ArrayField(
+        models.CharField(max_length=250, default=""), default=get_images_url_default, size=50
+    )
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class RealEstateUpdate(models.Model):
@@ -58,4 +68,4 @@ class RealEstateUpdate(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     update = ArrayField(models.CharField(max_length=15, choices=Update))
-    update_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
