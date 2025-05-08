@@ -2,6 +2,8 @@
 Tests for search API
 """
 
+from unittest.mock import patch
+
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -12,6 +14,7 @@ from rest_framework import status
 from search.models import Filter, Search
 from real_estate.models import RealEstate
 from user.models import User
+
 
 def create_search(user: User = None) -> Search:
     filter_obj = Filter.objects.create(
@@ -37,9 +40,11 @@ def create_search(user: User = None) -> Search:
 
     return search_obj
 
+
 def create_multiple_search(n: int, user: User = None) -> None:
     for _ in range(n):
         create_search(user)
+
 
 class PublicApiTests(TestCase):
     """
@@ -70,8 +75,11 @@ class PublicApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("max_area", res.data)
 
-    def test_public_create_search_success(self):
+    @patch("search.services.crawl_isc_real_estate_search")
+    def test_public_create_search_success(self, search_task):
         """User creates a search with success"""
+        search_task.delay.return_value = None
+
         client = APIClient()
         url = reverse("search:search")
 
@@ -151,8 +159,11 @@ class PrivateApiTest(TestCase):
             email="myuser@myemail.com", password="securepassword123", name="My user"
         )
 
-    def test_private_create_search_success(self):
+    @patch("search.services.crawl_isc_real_estate_search")
+    def test_private_create_search_success(self, search_task):
         """User creates a search with success"""
+        search_task.delay.return_value = None
+
         client = APIClient()
         client.force_authenticate(user=self.user)
         url = reverse("search:search")

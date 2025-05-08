@@ -14,6 +14,9 @@ from user.models import User
 
 from common.errors.errors import SerializationError, DeserializationError
 
+from search.task import crawl_isc_real_estate_search
+from search.webcrawler_isc import WebsiteISCFilter
+
 
 def deserialize_create_search(data: QueryDict) -> Dict:
     data_in = SearchCreateSerializer(data=data)
@@ -148,6 +151,8 @@ def create_search(user: User, data: Dict) -> Search:
 
     filter_obj = Filter.objects.create(created_by=request_user, **data)
     search_obj = Search.objects.create(created_by=request_user, filter=filter_obj)
+
+    crawl_isc_real_estate_search.delay(search_obj.id)
 
     return search_obj
 

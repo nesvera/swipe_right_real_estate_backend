@@ -52,9 +52,12 @@ class RealEstate(models.Model):
     cond_price = models.FloatField()
     description = models.CharField(max_length=2000)
     images_url = ArrayField(
-        models.CharField(max_length=250, default=""), default=get_images_url_default, size=50
+        models.CharField(max_length=250, default=""),
+        default=get_images_url_default,
+        size=50,
     )
     updated_at = models.DateTimeField(auto_now=True)
+    url = models.CharField(max_length=250)
 
 
 class RealEstateUpdate(models.Model):

@@ -24,7 +24,6 @@ class WebsiteISCAgencyInfo:
 class WebsiteISCRealEstateInfo:
     code: str = ""
     model: str = ""
-    real_state: str = ""
     neighborhood: str = ""
     city: str = ""
     summary: str = ""
@@ -40,7 +39,6 @@ class WebsiteISCRealEstateInfo:
         self,
         code: str,
         model: str,
-        real_state: str,
         neighborhood: str,
         city: str,
         summary: str,
@@ -54,7 +52,6 @@ class WebsiteISCRealEstateInfo:
     ):
         self.code = code
         self.model = model
-        self.real_state = real_state
         self.neighborhood = neighborhood
         self.city = city
         self.summary = summary
@@ -336,7 +333,6 @@ class WebcrawlerISCRealEstate:
         for imovel_tag in imoveis_soup:
             model = self.get_model(imovel_tag)
             code = self.get_code(imovel_tag)
-            real_state = self.get_real_estate(imovel_tag)
             neighborhood = self.get_neighborhood(imovel_tag)
             city = self.get_city(imovel_tag)
             summary = self.get_summary(imovel_tag)
@@ -351,7 +347,6 @@ class WebcrawlerISCRealEstate:
             imovel_info = WebsiteISCRealEstateInfo(
                 code=code,
                 model=model,
-                real_state=real_state,
                 neighborhood=neighborhood,
                 city=city,
                 summary=summary,
@@ -395,20 +390,6 @@ class WebcrawlerISCRealEstate:
             return ""
 
         return code
-
-    def get_real_estate(
-        self,
-        snnipet: element.Tag = "",
-    ) -> str:
-        try:
-            real_estate = snnipet.find(
-                "meta",
-                itemprop="brand",
-            ).get("content")
-        except:
-            return ""
-
-        return real_estate
 
     def get_neighborhood(
         self,
@@ -566,6 +547,7 @@ class WebcrawlerISCRealEstate:
             image_url = match.group(1) if match else None
 
             agency = WebsiteISCAgencyInfo(title, link, image_url)
+            return agency
 
         else:
             return None
