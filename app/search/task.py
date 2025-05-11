@@ -2,6 +2,7 @@ import traceback
 
 from celery import shared_task
 from uuid import UUID
+from typing import List
 
 
 from search.models import Search
@@ -133,6 +134,76 @@ def update_real_estate_object(
     pass
 
 
+def create_isc_filter(search_obj: Search) -> WebsiteISCFilter:
+    # convert filter description from model definition to ISC definition
+    property_type = []
+    for pt in search_obj.filter.property_type:
+        if pt == RealEstate.PropertyType.APARTMENT:
+            property_type.append("apartamento")
+        elif pt == RealEstate.PropertyType.HOUSE:
+            property_type.append("casa")
+        elif pt == RealEstate.PropertyType.TERRAIN:
+            property_type.append("terreno")
+        elif pt == RealEstate.PropertyType.OFFICE:
+            property_type.append("sala-escritorio")
+        elif pt == RealEstate.PropertyType.WAREHOUSE:
+            property_type.append("galpao")
+        elif pt == RealEstate.PropertyType.RURAL:
+            property_type.append("imovel-rural")
+        else:
+            property_type.append("casa")
+
+    transaction_type = []
+    for tt in search_obj.filter.transaction_type:
+        if tt == RealEstate.TransactionType.BUY:
+            transaction_type.append("comprar")
+        else:
+            transaction_type.append("alugar")
+
+    city = search_obj.filter.city[0]
+    neighborhood = search_obj.filter.neighborhood
+
+    def number_list_to_options(number_list: List[int]) -> List[str]:
+        # isc accepts a list of strings with numbers up to 4, and then 5+
+        options = []
+        for n in number_list:
+            if n < 5 and n not in options:
+                options.append(str(n))
+                continue
+            elif n >= 5 and "5+" not in options:
+                options.append("5+")
+                continue
+            else:
+                continue
+
+        return options
+
+    bedroom_quantity = number_list_to_options(search_obj.filter.bedroom_quantity)
+    suite_quantity = number_list_to_options(search_obj.filter.suite_quantity)
+    garage_slots_quantity = number_list_to_options(
+        search_obj.filter.garage_slots_quantity
+    )
+    min_price = int(search_obj.filter.min_price)
+    max_price = int(search_obj.filter.max_price)
+    min_area = int(search_obj.filter.min_area)
+    max_area = int(search_obj.filter.max_area)
+
+    isc_filter = WebsiteISCFilter(
+        property_type=property_type,
+        transaction_type=transaction_type,
+        city=city,
+        neighborhood=neighborhood,
+        bedroom_quantity=bedroom_quantity,
+        suite_quantity=suite_quantity,
+        garage_slots_quantity=garage_slots_quantity,
+        min_price=min_price,
+        max_price=max_price,
+        min_area=min_area,
+        max_area=max_area,
+    )
+    return isc_filter
+
+
 @shared_task(queue="default")
 def crawl_isc_real_estate_search(search_id: UUID) -> None:
     try:
@@ -141,20 +212,7 @@ def crawl_isc_real_estate_search(search_id: UUID) -> None:
         print(f"Search object does not exist. ID: {search_id}.")
         return
 
-    # TODO - needs to convert from server filter to ISC filter
-    webcrawler_filter = WebsiteISCFilter(
-        property_type=["apartamento", "casa", "terreno"],
-        transaction_type=["comprar", "alugar"],
-        city="blumenau",
-        neighborhood=["agua-verde", "bom-retiro", "centro", "fidelis"],
-        bedroom_quantity=["3", "4", "5+"],
-        suite_quantity=["1", "4", "5+"],
-        garage_slots_quantity=["1", "4", "5+"],
-        min_price=500000,
-        max_price=1200000,
-        min_area=35,
-        max_area=95,
-    )
+    webcrawler_filter = create_isc_filter(search_obj)
 
     crawler = WebcrawlerISCRealEstate()
     crawler.set_filter(webcrawler_filter)

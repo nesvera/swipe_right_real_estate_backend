@@ -173,41 +173,51 @@ class WebcrawlerISCRealEstate:
 
             path += neighborhood
 
-        path += "/quartos/"
-
+        tmp_path = ""
         for i, bedroom_qnt in enumerate(self.filter.bedroom_quantity):
             if i != 0:
-                path += ","
+                tmp_path += ","
 
-            path += bedroom_qnt
+            tmp_path += bedroom_qnt
+
+        if tmp_path != "0":
+            path += "/quartos/"
+            path += tmp_path
 
         path += "?"
         path += f"valor={self.filter.min_price}-{self.filter.max_price}"
         path += "&"
         path += f"area={self.filter.min_area}-{self.filter.max_area}"
-        path += "&"
-        path += "suites="
 
+        tmp_path = ""
         for i, suites_qnt in enumerate(self.filter.suite_quantity):
             if i != 0:
-                path += "%2C"
+                tmp_path += "%2C"
 
             if suites_qnt == "5+":
-                path += "5%2B"
+                tmp_path += "5%2B"
             else:
-                path += suites_qnt
+                tmp_path += suites_qnt
 
-        path += "&"
-        path += "vagas="
+        if tmp_path != "0":
+            path += "&"
+            path += "suites="
+            path += tmp_path
 
+        tmp_path = ""
         for i, garare_slots_qnt in enumerate(self.filter.garage_slots_quantity):
             if i != 0:
-                path += "%2C"
+                tmp_path += "%2C"
 
             if garare_slots_qnt == "5+":
-                path += "5%2B"
+                tmp_path += "5%2B"
             else:
-                path += garare_slots_qnt
+                tmp_path += garare_slots_qnt
+
+        if tmp_path != "0":
+            path += "&"
+            path += "vagas="
+            path += tmp_path
 
         self.url = f"{self.base_url}/{path}"
         print(f"Webcrawler url: {self.url}")
@@ -231,10 +241,11 @@ class WebcrawlerISCRealEstate:
             print(f"Querying page {self.page} of {self.page_last}")
 
             tmp_real_estate_list = self.extract_info(response)
-            print(f"Page: {self.page} - Real estate count: {len(tmp_real_estate_list)}")
 
             if tmp_real_estate_list is None:
                 tmp_real_estate_list = []
+
+            print(f"Page: {self.page} - Real estate count: {len(tmp_real_estate_list)}")
 
             page_content = WebsiteISCPageContent(
                 real_estate_list=tmp_real_estate_list,
