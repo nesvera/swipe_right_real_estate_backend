@@ -2,7 +2,7 @@ import traceback
 
 from celery import shared_task
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 
 
 from search.models import Search
@@ -65,7 +65,7 @@ def convert_values_to_float(value: str) -> float:
 
 def create_real_estate_object(
     real_estate_info: WebsiteISCRealEstateInfo, search_obj: Search
-):
+) -> Optional[RealEstate]:
     print(f"Creating real estate object for code {real_estate_info.code}")
     try:
         agency_obj = Agency.objects.get(profile_url=real_estate_info.agency.profile_url)
@@ -90,12 +90,24 @@ def create_real_estate_object(
             print(
                 f"Failed to create agency object for name {real_estate_info.agency.name}. Error: {e}."
             )
-            return
+            return None
 
     property_type = extract_property_type_from_url(real_estate_info.url)
     transaction_type = extract_transaction_type_from_url(real_estate_info.url)
     price = convert_values_to_float(real_estate_info.price)
     area = convert_values_to_float(real_estate_info.space)
+
+    bedrooms = real_estate_info.bedrooms
+    if len(bedrooms) == 0:
+        bedrooms = 0
+
+    suites = real_estate_info.suite
+    if len(suites) == 0:
+        suites = 0
+
+    garage_slots = real_estate_info.garage_slots
+    if len(garage_slots) == 0:
+        garage_slots = 0
 
     try:
         re_obj = RealEstate(
@@ -104,10 +116,10 @@ def create_real_estate_object(
             transaction_type=transaction_type,
             city=real_estate_info.city,
             neighborhood=real_estate_info.neighborhood,
-            bedroom_quantity=int(real_estate_info.bedrooms),
-            suite_quantity=int(real_estate_info.suite),
+            bedroom_quantity=bedrooms,
+            suite_quantity=suites,
             bathroom_quantity=0,
-            garage_slots_quantity=int(real_estate_info.garage_slots),
+            garage_slots_quantity=garage_slots,
             price=price,
             area=area,
             area_total=area,
@@ -119,10 +131,12 @@ def create_real_estate_object(
             url=real_estate_info.url,
         )
         re_obj.save()
+        return re_obj
     except Exception as e:
         print(
             f"Failed to create real estate object for code {real_estate_info.code}. Error: {e}."
         )
+        return None
 
 
 def update_real_estate_object(
@@ -227,16 +241,22 @@ def crawl_isc_real_estate_search(search_id: UUID) -> None:
             real_estate_list = page_content.real_estate_list
             for real_estate in real_estate_list:
                 try:
-                    obj = RealEstate.objects.get(reference_code=real_estate.code)
-                    update_real_estate_object(obj, real_estate, search_obj)
+                    real_estate_obj = RealEstate.objects.get(
+                        reference_code=real_estate.code
+                    )
+                    update_real_estate_object(real_estate_obj, real_estate, search_obj)
 
                 except RealEstate.DoesNotExist:
-                    create_real_estate_object(real_estate, search_obj)
+                    real_estate_obj = create_real_estate_object(real_estate, search_obj)
 
                 except Exception as e:
                     print(
                         f"Fail to save real estate object code {real_estate.code} - URL {real_estate.url}. Error: {e}."
                     )
+                    continue
+
+                # TODO - create database for nxn to relate real estate to search
+                print(real_estate_obj)
 
     except Exception as e:
         tb = traceback.format_exc()
