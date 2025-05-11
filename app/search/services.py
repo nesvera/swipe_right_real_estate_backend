@@ -1,13 +1,14 @@
-from typing import Dict
+from typing import Dict, List
 
 from django.http.request import QueryDict
 from django.db.models.query import QuerySet
 
-from search.models import Filter, Search
+from search.models import Filter, Search, SearchResultRealEstate
 from search.serializers import (
     SearchCreateSerializer,
     SearchRetrieveSerializer,
     SearchListSerializer,
+    SearchResultListSerializer,
 )
 
 from user.models import User
@@ -70,7 +71,7 @@ def serialize_create_search(search_obj: Search) -> Dict:
     if not data_out.is_valid():
         raise SerializationError(data_out.errors)
 
-    return data_out.data
+    return data_out.validated_data
 
 
 def serialize_list_search(search_queryset: QuerySet) -> Dict:
@@ -140,7 +141,7 @@ def serialize_retrieve_search(search_obj: Search) -> Dict:
     if not data_out.is_valid():
         raise SerializationError(data_out.errors)
 
-    return data_out.data
+    return data_out.validated_data
 
 
 def create_search(user: User, data: Dict) -> Search:
@@ -169,3 +170,47 @@ def list_search(user: User) -> QuerySet:
 
 def get_search(id: str) -> Search:
     return Search.objects.get(id=id)
+
+
+def list_search_result(search_id: str) -> QuerySet:
+    """List real estates with certain search_id"""
+    return SearchResultRealEstate.objects.filter(search=search_id)
+
+
+def serialize_search_result(queryset: List[SearchResultRealEstate]) -> Dict:
+    """Convert queryset result to expected serialize format"""
+    real_estate_list = []
+
+    for search_result_element in queryset:
+        data_out = {
+            "id": search_result_element.real_estate.id,
+            "property_type": search_result_element.real_estate.property_type,
+            "transaction_type": search_result_element.real_estate.transaction_type,
+            "city": search_result_element.real_estate.city,
+            "neighborhood": search_result_element.real_estate.neighborhood,
+            "bedroom_quantity": search_result_element.real_estate.bedroom_quantity,
+            "suite_quantity": search_result_element.real_estate.suite_quantity,
+            "garage_slots_quantity": search_result_element.real_estate.suite_quantity,
+            "price": search_result_element.real_estate.price,
+            "condo_price": search_result_element.real_estate.cond_price,
+            "area": search_result_element.real_estate.area,
+            "area_total": search_result_element.real_estate.area_total,
+        }
+
+        real_estate_list.append(data_out)
+
+    list_response_dict = {
+        "data": real_estate_list,
+        "meta": {
+            "total": 0,
+            "page": 0,
+            "per_page": 0,
+            "total_pages": 0,
+        },
+    }
+
+    serialize = SearchResultListSerializer(data=list_response_dict)
+    if not serialize.is_valid():
+        raise SerializationError(serialize.errors)
+
+    return serialize.validated_data

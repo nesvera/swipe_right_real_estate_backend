@@ -5,7 +5,7 @@ from uuid import UUID
 from typing import List, Optional
 
 
-from search.models import Search
+from search.models import Search, SearchResultRealEstate
 from search.webcrawler_isc import (
     WebsiteISCFilter,
     WebcrawlerISCRealEstate,
@@ -255,8 +255,14 @@ def crawl_isc_real_estate_search(search_id: UUID) -> None:
                     )
                     continue
 
-                # TODO - create database for nxn to relate real estate to search
-                print(real_estate_obj)
+                try:
+                    SearchResultRealEstate.objects.create(
+                        search=search_obj, real_estate=real_estate_obj
+                    )
+                except Exception as e:
+                    print(
+                        f"Fail to create search result for real estate code {real_estate.code} - URL {real_estate.url}. Error: {e}."
+                    )
 
     except Exception as e:
         tb = traceback.format_exc()

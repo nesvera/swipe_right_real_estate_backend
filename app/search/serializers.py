@@ -56,3 +56,26 @@ class SearchListSerializer(PaginationSerializer):
     """Serializer for list Search objects"""
 
     data = SearchRetrieveSerializer(many=True)
+
+
+class SearchResultRealEstateSerializer(serializers.Serializer):
+    """Serializer describing a real estate from search result"""
+
+    id = serializers.UUIDField()
+    property_type = serializers.ChoiceField(choices=RealEstate.PropertyType)
+    transaction_type = serializers.ChoiceField(choices=RealEstate.TransactionType)
+    city = serializers.CharField(max_length=100)
+    neighborhood = serializers.CharField(max_length=100)
+    bedroom_quantity = serializers.IntegerField(min_value=0)
+    suite_quantity = serializers.IntegerField(min_value=0)
+    garage_slots_quantity = serializers.IntegerField(min_value=0)
+    price = serializers.FloatField(min_value=0.0)
+    condo_price = serializers.FloatField(min_value=0.0)
+    area = serializers.FloatField(min_value=0.0)
+    area_total = serializers.FloatField(min_value=0.0)
+
+
+class SearchResultListSerializer(PaginationSerializer):
+    """Serializer to list real estate related to a search"""
+
+    data = SearchResultRealEstateSerializer(many=True)

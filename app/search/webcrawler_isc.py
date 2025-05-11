@@ -233,6 +233,8 @@ class WebcrawlerISCRealEstate:
         while True:
             response = self.make_request()
 
+            # TODO - check if None is on response
+
             if self.page_last == -1 or self.real_estate_count == -1:
                 [self.real_estate_count, self.page_last] = (
                     self.get_total_and_last_page_number(response)

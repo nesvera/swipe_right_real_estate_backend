@@ -54,3 +54,9 @@ class Search(models.Model):
         max_length=15, choices=QueryStatus, default=QueryStatus.NOT_STARTED
     )
     number_real_estate_found = models.IntegerField(default=0)
+
+
+class SearchResultRealEstate(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    search = models.ForeignKey(Search, on_delete=models.CASCADE)
+    real_estate = models.ForeignKey(RealEstate, on_delete=models.CASCADE)

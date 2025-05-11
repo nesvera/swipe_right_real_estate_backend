@@ -11,8 +11,8 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from search.models import Filter, Search
-from real_estate.models import RealEstate
+from search.models import Filter, Search, SearchResultRealEstate
+from real_estate.models import RealEstate, Agency
 from user.models import User
 
 
@@ -39,6 +39,54 @@ def create_search(user: User = None) -> Search:
     )
 
     return search_obj
+
+
+def create_real_estate(search_obj: Search) -> RealEstate:
+    agency_dict = {
+        "name": "blah",
+        "creci": "12345",
+        "city": "texas",
+        "address_street": "street1",
+        "address_number": "123",
+        "contact_number_1": "1234",
+        "contact_number_2": "4321",
+        "contact_whatsapp": "4444",
+        "logo_url": "https://someplace",
+    }
+
+    agency_obj = Agency.objects.create(**agency_dict)
+
+    model_dict = {
+        "reference_code": "0001",
+        "property_type": RealEstate.PropertyType.APARTMENT,
+        "transaction_type": RealEstate.TransactionType.BUY,
+        "city": "texas",
+        "neighborhood": "some-neighborhood",
+        "bedroom_quantity": 2,
+        "suite_quantity": 1,
+        "bathroom_quantity": 2,
+        "garage_slots_quantity": 1,
+        "price": 100.0,
+        "area": 50.0,
+        "area_total": 55.0,
+        "available": True,
+        "agency": agency_obj,
+        "cond_price": 12.0,
+        "description": "some nice real estate to be sold",
+        "images_url": [
+            "https://some-nice-image1.png",
+            "https://some-nice-image2.png",
+            "https://some-nice-image3.png",
+        ],
+    }
+
+    real_estate_obj = RealEstate.objects.create(**model_dict)
+
+    SearchResultRealEstate.objects.create(
+        search=search_obj, real_estate=real_estate_obj
+    )
+
+    return real_estate_obj
 
 
 def create_multiple_search(n: int, user: User = None) -> None:
@@ -145,7 +193,26 @@ class PublicApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn("id", res.data)
-        self.assertEqual(res.data.get("id"), str(search_obj.id))
+        self.assertEqual(res.data.get("id"), search_obj.id)
+
+    def test_public_search_result_list_real_estate(self):
+        search_obj = create_search()
+        real_estate_obj = create_real_estate(search_obj)
+
+        client = APIClient()
+        url = reverse("search:search-pk-result", args=[str(search_obj.id)])
+
+        res = client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("data", res.data)
+        self.assertIn("meta", res.data)
+        self.assertEqual(len(res.data.get("data")), 1)
+        self.assertEqual(res.data.get("data")[0].get("id"), real_estate_obj.id)
+        self.assertEqual(res.data.get("meta").get("total"), 0)
+        self.assertEqual(res.data.get("meta").get("page"), 0)
+        self.assertEqual(res.data.get("meta").get("per_page"), 0)
+        self.assertEqual(res.data.get("meta").get("total_pages"), 0)
 
 
 class PrivateApiTest(TestCase):
@@ -228,4 +295,4 @@ class PrivateApiTest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn("id", res.data)
-        self.assertEqual(res.data.get("id"), str(search_obj.id))
+        self.assertEqual(res.data.get("id"), search_obj.id)

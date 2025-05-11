@@ -13,6 +13,7 @@ from search.serializers import (
     SearchCreateSerializer,
     SearchRetrieveSerializer,
     SearchListSerializer,
+    SearchResultListSerializer,
 )
 from search import services
 
@@ -112,3 +113,36 @@ class SearchView(
 
     def partial_update(self, request: Request, pk=None) -> Response:
         return Response("", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class SearchResultView(
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
+    """View used to return list o real estate related to a search"""
+
+    serializer_class = None
+    queryset = QuerySet.none
+    authentication_classes = [authentication.JWTAuthentication]
+    permission_classes = [permissions.AllowAny]
+
+    def get_serializer_class(self):
+        return SearchResultListSerializer
+
+    def list(self, request: Request, id: str) -> Response:
+        # TODO - missing pagination handling
+        try:
+            search_queryset = services.list_search_result(id)
+        except Exception as e:
+            print(f"Failed to list search results. Error: {e}")
+            return Response("", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        try:
+            response = services.serialize_search_result(search_queryset)
+        except SerializationError as e:
+            print(
+                f"Failed to serialize list search results response. Error: {e.errors}"
+            )
+            return Response("", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(response, status=status.HTTP_200_OK)
