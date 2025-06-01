@@ -53,6 +53,7 @@ class Search(models.Model):
     query_status = models.CharField(
         max_length=15, choices=QueryStatus, default=QueryStatus.NOT_STARTED
     )
+    # TODO - check if is possible to delete this, and only count search results
     number_real_estate_found = models.IntegerField(default=0)
 
 

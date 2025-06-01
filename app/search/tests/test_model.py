@@ -2,7 +2,6 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from search.models import Filter, Search, SearchResultRealEstate
-from user.models import User
 from real_estate.models import RealEstate, Agency
 
 
