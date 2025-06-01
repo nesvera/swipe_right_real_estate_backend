@@ -2,6 +2,8 @@ from rest_framework import serializers
 
 from radar.models import Radar
 
+from common.pagination.serializers import PaginationSerializer
+
 
 class RadarCreateSerializer(serializers.Serializer):
     """Used to create Radars"""
@@ -15,6 +17,12 @@ class RadarRetrieveSerializer(serializers.Serializer):
 
     id = serializers.UUIDField()
     name = serializers.CharField()
+
+
+class RadarListSerializer(PaginationSerializer):
+    """Used to list Radars"""
+
+    data = RadarRetrieveSerializer(many=True)
 
 
 class RadarUpdateSerializer(serializers.ModelSerializer):
