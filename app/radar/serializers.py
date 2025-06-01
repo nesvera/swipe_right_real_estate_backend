@@ -3,20 +3,18 @@ from rest_framework import serializers
 from radar.models import Radar
 
 
-class RadarRetrieveSerialier(serializers.ModelSerializer):
-    """Used to retrieve Radars"""
-
-    class Meta:
-        model = Radar
-        fields = ["id", "name"]
-
-
-class RadarCreateSerializer(serializers.ModelSerializer):
+class RadarCreateSerializer(serializers.Serializer):
     """Used to create Radars"""
 
-    class Meta:
-        model = Radar
-        fields = ["name"]
+    name = serializers.CharField(max_length=255)
+    search = serializers.UUIDField()
+
+
+class RadarRetrieveSerializer(serializers.Serializer):
+    """Used to retrieve Radars"""
+
+    id = serializers.UUIDField()
+    name = serializers.CharField()
 
 
 class RadarUpdateSerializer(serializers.ModelSerializer):
