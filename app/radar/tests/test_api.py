@@ -13,8 +13,9 @@ from rest_framework import status
 
 from user.factories import UserFactory
 from search.factories import SearchFactory
-from radar.models import Radar
-from radar.factories import RadarFactory
+from radar.models import Radar, RadarRealEstate
+from radar.factories import RadarFactory, RadarRealEstateFactory
+from real_estate.factories import RealEstateFactory
 
 
 class PublicApiTests(TestCase):
@@ -279,3 +280,128 @@ class PrivateApiTest(TestCase):
         res = client.delete(url)
 
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_list_radar_real_estate_success_default_preference_pending(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        radar = RadarFactory(created_by=self.user)
+        real_estate = RealEstateFactory()
+        radar_real_estate_pending = RadarRealEstateFactory(
+            radar=radar,
+            real_estate=real_estate,
+            preference=RadarRealEstate.Preference.PENDING,
+        )
+        RadarRealEstateFactory(
+            radar=radar,
+            real_estate=real_estate,
+            preference=RadarRealEstate.Preference.DISLIKE,
+        )
+
+        url = reverse("radar:radar-real-estate-list", args=[str(radar.id)])
+
+        res = client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("data", res.data)
+        self.assertIn("meta", res.data)
+
+        data_list = res.data.get("data", [])
+
+        self.assertEqual(len(data_list), 1)
+        self.assertEqual(data_list[0].get("id"), radar_real_estate_pending.id)
+
+    def test_list_radar_real_estate_fail_id_not_found(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        RadarFactory()
+
+        url = reverse(
+            "radar:radar-real-estate-list",
+            args=["611bd556-6703-4437-b29a-f7279b62a6e6"],
+        )
+
+        res = client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_list_radar_real_estate_fail_id_other_user(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        radar = RadarFactory()
+
+        url = reverse("radar:radar-real-estate-list", args=[str(radar.id)])
+
+        res = client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_list_radar_real_estate_success_preference_like(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        radar = RadarFactory(created_by=self.user)
+        real_estate = RealEstateFactory()
+        radar_real_estate_like = RadarRealEstateFactory(
+            radar=radar,
+            real_estate=real_estate,
+            preference=RadarRealEstate.Preference.LIKE,
+        )
+        RadarRealEstateFactory(
+            radar=radar,
+            real_estate=real_estate,
+            preference=RadarRealEstate.Preference.PENDING,
+        )
+
+        url = reverse(
+            "radar:radar-real-estate-list",
+            args=[str(radar.id)],
+            query={"preference": "like"},
+        )
+
+        res = client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("data", res.data)
+        self.assertIn("meta", res.data)
+
+        data_list = res.data.get("data", [])
+
+        self.assertEqual(len(data_list), 1)
+        self.assertEqual(data_list[0].get("id"), radar_real_estate_like.id)
+
+    def test_list_radar_real_estate_success_preference_dislike(self):
+        client = APIClient()
+        client.force_authenticate(user=self.user)
+
+        radar = RadarFactory(created_by=self.user)
+        real_estate = RealEstateFactory()
+        radar_real_estate_dislike = RadarRealEstateFactory(
+            radar=radar,
+            real_estate=real_estate,
+            preference=RadarRealEstate.Preference.DISLIKE,
+        )
+        RadarRealEstateFactory(
+            radar=radar,
+            real_estate=real_estate,
+            preference=RadarRealEstate.Preference.PENDING,
+        )
+
+        url = reverse(
+            "radar:radar-real-estate-list",
+            args=[str(radar.id)],
+            query={"preference": "dislike"},
+        )
+
+        res = client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn("data", res.data)
+        self.assertIn("meta", res.data)
+
+        data_list = res.data.get("data", [])
+
+        self.assertEqual(len(data_list), 1)
+        self.assertEqual(data_list[0].get("id"), radar_real_estate_dislike.id)

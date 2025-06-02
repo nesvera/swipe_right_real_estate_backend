@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from radar.models import Radar
+from radar.models import RadarRealEstate
 
 from common.pagination.serializers import PaginationSerializer
 
@@ -25,9 +25,17 @@ class RadarListSerializer(PaginationSerializer):
     data = RadarRetrieveSerializer(many=True)
 
 
-class RadarUpdateSerializer(serializers.ModelSerializer):
-    """Used to update Radars"""
+class RadarRealEstateListItemSerializer(serializers.Serializer):
+    """Item inside the list of real estates from a radar"""
 
-    class Meta:
-        model = Radar
-        fields = ["name"]
+    id = serializers.UUIDField()
+
+
+class RadarRealEstateListSerializer(PaginationSerializer):
+    """Used to list real estates from a radar"""
+
+    data = RadarRealEstateListItemSerializer(many=True)
+
+
+class RadarRealEstateListParamsSerializer(serializers.Serializer):
+    preference = serializers.ChoiceField(choices=RadarRealEstate.Preference, required=False)

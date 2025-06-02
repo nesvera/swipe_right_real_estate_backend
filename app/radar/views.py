@@ -4,8 +4,8 @@ from rest_framework import mixins, status, permissions, viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
-
 from rest_framework_simplejwt import authentication
+from drf_spectacular.utils import extend_schema
 
 from user.models import User
 from radar.models import Radar, RadarRealEstate
@@ -14,8 +14,9 @@ from radar import services
 from radar.serializers import (
     RadarCreateSerializer,
     RadarRetrieveSerializer,
-    RadarUpdateSerializer,
     RadarListSerializer,
+    RadarRealEstateListSerializer,
+    RadarRealEstateListParamsSerializer,
 )
 
 from common.errors.errors import SerializationError, DeserializationError
@@ -84,7 +85,9 @@ class RadarView(
                 RadarListSerializer, radar_queryset
             )
         except SerializationError as e:
-            print(f"Failed to serializer response while listing radars. Error: {e}.")
+            print(
+                f"Failed to serializer response while listing radars. Error: {e.errors}."
+            )
             return Response("", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(response, status=status.HTTP_200_OK)
@@ -98,8 +101,10 @@ class RadarView(
 
         try:
             response = services.serialize_retrieve_radar(RadarRetrieveSerializer, radar)
-        except Exception as e:
-            print(f"Failed to serialize response while retrieve radar. Error: {e}.")
+        except SerializationError as e:
+            print(
+                f"Failed to serialize response while retrieve radar. Error: {e.errors}."
+            )
             return Response("", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response(response, status=status.HTTP_200_OK)
@@ -122,14 +127,50 @@ class RadarRealEstateListView(
 ):
     """View used to list real estates related to a Radar"""
 
-    serializer_class = RadarRetrieveSerializer
+    serializer_class = RadarRealEstateListSerializer
     queryset = RadarRealEstate.objects.none()
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self) -> ModelSerializer:
-        return None
-        return RadarRetrieveSerialier
+        return RadarRealEstateListSerializer
+
+    @extend_schema(
+        parameters=[RadarRealEstateListParamsSerializer]
+    )
+    def list(self, request: Request, id: str) -> Response:
+        # TODO - serialize query params
+
+        try:
+            query_params = services.deserialize_list_query_params_radar_real_estate(
+                RadarRealEstateListParamsSerializer, request.query_params
+            )
+        except DeserializationError as e:
+            print(
+                f"Failed to deserialize query param while listing real estate for radar. Error: {e.errors}"
+            )
+            query_params = {}
+
+        # TODO - how to handle pagination
+        try:
+            real_estate_queryset = services.list_real_estate(
+                request.user, id, query_params
+            )
+        except services.InvalidRadarIdError as e:
+            print(f"Failed to list real estate for radar. Radar ID: {id}. Error: {e}.")
+            return Response("", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            response = services.serialize_real_estate_list(
+                RadarRealEstateListSerializer, real_estate_queryset
+            )
+        except SerializationError as e:
+            print(
+                f"Failed to serialize response for radar real estate list. Error: {e.errors}"
+            )
+            return Response("", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(response, status=status.HTTP_200_OK)
 
 
 class RadarRealEstateView(
@@ -148,7 +189,5 @@ class RadarRealEstateView(
         return None
         if self.action == "retrieve":
             return RadarCreateSerializer
-        elif self.action == "update":
-            return RadarUpdateSerializer
         else:
             return RadarRetrieveSerialier
