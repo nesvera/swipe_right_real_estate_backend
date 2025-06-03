@@ -17,6 +17,8 @@ from radar.serializers import (
     RadarListSerializer,
     RadarRealEstateListSerializer,
     RadarRealEstateListParamsSerializer,
+    RadarRealEstateRetrieveSerializer,
+    RadarRealEstateUpdateSerializer,
 )
 
 from common.errors.errors import SerializationError, DeserializationError
@@ -135,9 +137,7 @@ class RadarRealEstateListView(
     def get_serializer_class(self) -> ModelSerializer:
         return RadarRealEstateListSerializer
 
-    @extend_schema(
-        parameters=[RadarRealEstateListParamsSerializer]
-    )
+    @extend_schema(parameters=[RadarRealEstateListParamsSerializer])
     def list(self, request: Request, id: str) -> Response:
         # TODO - serialize query params
 
@@ -180,14 +180,60 @@ class RadarRealEstateView(
 ):
     """View used to retrieve real estate info, and update assessment from user about it"""
 
-    serializer_class = RadarRetrieveSerializer
+    serializer_class = RadarRealEstateRetrieveSerializer
     queryset = RadarRealEstate.objects.none()
     authentication_classes = [authentication.JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self) -> ModelSerializer:
-        return None
         if self.action == "retrieve":
-            return RadarCreateSerializer
+            return RadarRealEstateRetrieveSerializer
         else:
-            return RadarRetrieveSerialier
+            return RadarRealEstateUpdateSerializer
+
+    def retrieve(self, request: Request, id: str) -> Response:
+        try:
+            radar_real_estate = services.retrieve_radar_real_estate(request.user, id)
+        except services.InvalidRadarRealEstateIdError as e:
+            print(
+                f"Failed to retrieve radar real estate. User: {request.user}. Error: {e}."
+            )
+            return Response("", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            response = services.serialize_radar_real_estate_retrieve(
+                RadarRealEstateRetrieveSerializer, radar_real_estate
+            )
+        except services.SerializationError as e:
+            print(f"Failed to serialize radar real estate. Error: {e.errors}.")
+            return Response("", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(response, status=status.HTTP_200_OK)
+
+    def partial_update(self, request: Request, id: str) -> Response:
+        try:
+            radar_real_estate = services.retrieve_radar_real_estate(request.user, id)
+        except services.InvalidRadarRealEstateIdError as e:
+            print(
+                f"Failed to retrieve radar real estate. User: {request.user}. Error: {e}."
+            )
+            return Response("", status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            data_in = services.deserialize_update_radar_real_estate(RadarRealEstateUpdateSerializer, request.data)
+        except DeserializationError as e:
+            print(f"Failed to deserialize radar real estate while update. Error: {e}.")
+            return Response(e.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        radar_real_estate.preference = data_in.get("preference")
+        radar_real_estate.save()
+
+        try:
+            response = services.serialize_radar_real_estate_retrieve(
+                RadarRealEstateRetrieveSerializer, radar_real_estate
+            )
+        except services.SerializationError as e:
+            print(f"Failed to serialize radar real estate. Error: {e.errors}.")
+            return Response("", status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response(response, status=status.HTTP_200_OK)

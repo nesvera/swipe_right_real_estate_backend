@@ -38,4 +38,15 @@ class RadarRealEstateListSerializer(PaginationSerializer):
 
 
 class RadarRealEstateListParamsSerializer(serializers.Serializer):
-    preference = serializers.ChoiceField(choices=RadarRealEstate.Preference, required=False)
+    preference = serializers.ChoiceField(
+        choices=RadarRealEstate.Preference, required=False
+    )
+
+
+class RadarRealEstateRetrieveSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    preference = serializers.ChoiceField(choices=RadarRealEstate.Preference)
+
+
+class RadarRealEstateUpdateSerializer(serializers.Serializer):
+    preference = serializers.ChoiceField(choices=RadarRealEstate.Preference)

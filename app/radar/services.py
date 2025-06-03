@@ -128,7 +128,9 @@ def list_real_estate(
     user: User, radar_id: str, query_params: Optional[Dict]
 ) -> QuerySet:
 
-    query_preference = query_params.get("preference", RadarRealEstate.Preference.PENDING)
+    query_preference = query_params.get(
+        "preference", RadarRealEstate.Preference.PENDING
+    )
 
     try:
         radar = Radar.objects.get(id=radar_id)
@@ -174,9 +176,52 @@ def serialize_real_estate_list(
     return data_out.validated_data
 
 
-def deserialize_list_query_params_radar_real_estate(serializer: serializers.Serializer, query_params: Dict) -> Dict:
+def deserialize_list_query_params_radar_real_estate(
+    serializer: serializers.Serializer, query_params: Dict
+) -> Dict:
     qp_serializer = serializer(data=query_params)
     if not qp_serializer.is_valid():
         raise DeserializationError(qp_serializer.errors)
 
     return qp_serializer.validated_data
+
+
+class InvalidRadarRealEstateIdError(Exception):
+    pass
+
+
+def retrieve_radar_real_estate(user: User, id: str) -> RadarRealEstate:
+    try:
+        radar_real_estate = RadarRealEstate.objects.get(id=id)
+    except RadarRealEstate.DoesNotExist:
+        raise InvalidRadarRealEstateIdError(f"Radar real estate with ID {id} not found")
+
+    if radar_real_estate.radar.created_by != user:
+        raise InvalidRadarRealEstateIdError(
+            f"Radar real estate with ID {id} is not owned by {user.id}"
+        )
+
+    return radar_real_estate
+
+
+def serialize_radar_real_estate_retrieve(
+    serializer: serializers.Serializer, radar_real_estate: RadarRealEstate
+) -> Dict:
+    data_out_dict = {
+        "id": radar_real_estate.id,
+        "preference": radar_real_estate.preference,
+    }
+
+    data_out = serializer(data=data_out_dict)
+    if not data_out.is_valid():
+        raise SerializationError(data_out.errors)
+
+    return data_out.validated_data
+
+
+def deserialize_update_radar_real_estate(serializer: serializers.Serializer, data: QueryDict) -> Dict:
+    data_in = serializer(data=data)
+    if not data_in.is_valid():
+        raise DeserializationError(data_in.errors)
+
+    return data_in.validated_data
