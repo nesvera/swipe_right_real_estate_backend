@@ -30,12 +30,12 @@ class RadarRealEstate(models.Model):
         PENDING = "pending", "pending"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created_at = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     radar = models.ForeignKey(Radar, on_delete=models.CASCADE)
     real_estate = models.ForeignKey(RealEstate, on_delete=models.CASCADE)
-    updated_real_estate_at = models.DateField(auto_now_add=True)
-    removed_at = models.DateField(null=True)
-    viewed_at = models.DateField(null=True)
+    updated_real_estate_at = models.DateTimeField(auto_now_add=True)
+    removed_at = models.DateTimeField(null=True)
+    viewed_at = models.DateTimeField(null=True)
     preference = models.CharField(
         max_length=10, choices=Preference, default=Preference.PENDING
     )

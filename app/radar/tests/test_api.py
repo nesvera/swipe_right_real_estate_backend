@@ -3,6 +3,7 @@ Tests for search API
 """
 
 from unittest.mock import patch
+from datetime import datetime, timezone
 
 from django.test import TestCase
 from django.contrib.auth import get_user_model
@@ -450,7 +451,8 @@ class PrivateApiTest(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_update_radar_real_estate_success(self):
+    @patch("radar.services.datetime")
+    def test_update_radar_real_estate_success(self, patched_datetime):
         client = APIClient()
         client.force_authenticate(user=self.user)
 
@@ -463,6 +465,12 @@ class PrivateApiTest(TestCase):
         preference = RadarRealEstate.Preference.LIKE
         payload = {"preference": preference}
 
+        viewed_time_str = "09/19/22 13:55:26"
+        viewed_time = datetime.strptime(viewed_time_str, "%m/%d/%y %H:%M:%S").replace(
+            tzinfo=timezone.utc
+        )
+        patched_datetime.now.return_value = viewed_time
+
         res = client.patch(url, payload)
 
         radar_real_estate.refresh_from_db()
@@ -472,6 +480,7 @@ class PrivateApiTest(TestCase):
         self.assertIn("preference", res.data)
         self.assertEqual(radar_real_estate.id, res.data.get("id"))
         self.assertEqual(radar_real_estate.preference, preference)
+        self.assertEqual(radar_real_estate.viewed_at, viewed_time)
 
     def test_update_radar_real_estate_fail_id_not_found(self):
         client = APIClient()

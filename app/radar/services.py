@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional
+from datetime import datetime, timezone
 
 from rest_framework import serializers
 from django.http.request import QueryDict
@@ -219,9 +220,21 @@ def serialize_radar_real_estate_retrieve(
     return data_out.validated_data
 
 
-def deserialize_update_radar_real_estate(serializer: serializers.Serializer, data: QueryDict) -> Dict:
+def deserialize_update_radar_real_estate(
+    serializer: serializers.Serializer, data: QueryDict
+) -> Dict:
     data_in = serializer(data=data)
     if not data_in.is_valid():
         raise DeserializationError(data_in.errors)
 
     return data_in.validated_data
+
+
+def update_radar_real_estate(
+    radar_real_estate: RadarRealEstate, data_in: Dict
+) -> RadarRealEstate:
+    radar_real_estate.preference = data_in.get("preference")
+    radar_real_estate.viewed_at = datetime.now(timezone.utc)
+    radar_real_estate.save()
+
+    return radar_real_estate

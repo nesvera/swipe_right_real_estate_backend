@@ -225,8 +225,7 @@ class RadarRealEstateView(
             print(f"Failed to deserialize radar real estate while update. Error: {e}.")
             return Response(e.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        radar_real_estate.preference = data_in.get("preference")
-        radar_real_estate.save()
+        radar_real_estate = services.update_radar_real_estate(radar_real_estate, data_in)
 
         try:
             response = services.serialize_radar_real_estate_retrieve(
