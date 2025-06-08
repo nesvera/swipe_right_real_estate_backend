@@ -43,13 +43,47 @@ class SearchCreateSerializer(serializers.Serializer):
     max_area = serializers.FloatField(min_value=0.0)
 
 
+class FilterRetrieveSerializer(serializers.Serializer):
+    """Serializer for retrieving information about the filter from a search"""
+
+    # property_type  = serializers.ListField(child=)
+    property_type = serializers.ListField(
+        child=serializers.ChoiceField(choices=RealEstate.PropertyType),
+        allow_empty=False,
+    )
+    transaction_type = serializers.ListField(
+        child=serializers.ChoiceField(choices=RealEstate.TransactionType),
+        allow_empty=False,
+    )
+    city = serializers.ListField(
+        child=serializers.CharField(max_length=100), allow_empty=False
+    )
+    neighborhood = serializers.ListField(
+        child=serializers.CharField(max_length=100), allow_empty=False
+    )
+    bedroom_quantity = serializers.ListField(
+        child=serializers.IntegerField(min_value=0)
+    )
+    suite_quantity = serializers.ListField(child=serializers.IntegerField(min_value=0))
+    bathroom_quantity = serializers.ListField(
+        child=serializers.IntegerField(min_value=0)
+    )
+    garage_slots_quantity = serializers.ListField(
+        child=serializers.IntegerField(min_value=0)
+    )
+    min_price = serializers.FloatField(min_value=0.0)
+    max_price = serializers.FloatField(min_value=0.0)
+    min_area = serializers.FloatField(min_value=0.0)
+    max_area = serializers.FloatField(min_value=0.0)
+
+
 class SearchRetrieveSerializer(serializers.Serializer):
     """Serializer for get Search objects"""
 
     id = serializers.UUIDField()
     query_status = serializers.ChoiceField(choices=Search.QueryStatus)
     number_real_estate_found = serializers.IntegerField(min_value=0)
-    filter = SearchCreateSerializer()
+    filter = FilterRetrieveSerializer()
 
 
 class SearchListSerializer(PaginationSerializer):

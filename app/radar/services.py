@@ -31,7 +31,24 @@ def deserializer_create_radar(
 
 
 def serialize_create_radar(serializer: serializers.Serializer, radar: Radar) -> Dict:
-    data_out_dict = {"id": radar.id, "name": radar.name}
+    search_filter = radar.search.filter
+
+    filter_dict = {
+        "property_type": search_filter.property_type,
+        "transaction_type": search_filter.transaction_type,
+        "city": search_filter.city,
+        "neighborhood": search_filter.neighborhood,
+        "bedroom_quantity": search_filter.bedroom_quantity,
+        "suite_quantity": search_filter.suite_quantity,
+        "bathroom_quantity": search_filter.bathroom_quantity,
+        "garage_slots_quantity": search_filter.garage_slots_quantity,
+        "min_price": search_filter.min_price,
+        "max_price": search_filter.max_price,
+        "min_area": search_filter.min_area,
+        "max_area": search_filter.max_area,
+    }
+
+    data_out_dict = {"id": radar.id, "name": radar.name, "filter": filter_dict}
 
     data_out = serializer(data=data_out_dict)
     if not data_out.is_valid():
@@ -52,6 +69,8 @@ def create_radar(user: User, data: Dict) -> Radar:
     except Search.DoesNotExist:
         print(f"Search ID {search_id} does not exist.")
         raise InvalidSearchIdError
+
+    # TODO - check if there is already a radar with the search id, it should not be allowed to create again
 
     # Radar should only refer to search objects owned by the user
     if search_obj.created_by is not None and search_obj.created_by != user:
@@ -76,7 +95,24 @@ def serialize_list_radar(
     # convert radar queryset to paginated list
     radar_list = []
     for radar in radars:
-        radar_data = {"id": radar.id, "name": radar.name}
+        search_filter = radar.search.filter
+
+        filter_dict = {
+            "property_type": search_filter.property_type,
+            "transaction_type": search_filter.transaction_type,
+            "city": search_filter.city,
+            "neighborhood": search_filter.neighborhood,
+            "bedroom_quantity": search_filter.bedroom_quantity,
+            "suite_quantity": search_filter.suite_quantity,
+            "bathroom_quantity": search_filter.bathroom_quantity,
+            "garage_slots_quantity": search_filter.garage_slots_quantity,
+            "min_price": search_filter.min_price,
+            "max_price": search_filter.max_price,
+            "min_area": search_filter.min_area,
+            "max_area": search_filter.max_area,
+        }
+
+        radar_data = {"id": radar.id, "name": radar.name, "filter": filter_dict}
 
         radar_list.append(radar_data)
 
@@ -116,7 +152,24 @@ def retrieve_radar(user: User, id: str) -> Radar:
 
 
 def serialize_retrieve_radar(serializer: serializers.Serializer, radar: Radar) -> Dict:
-    data_out_dict = {"id": radar.id, "name": radar.name}
+    search_filter = radar.search.filter
+
+    filter_dict = {
+        "property_type": search_filter.property_type,
+        "transaction_type": search_filter.transaction_type,
+        "city": search_filter.city,
+        "neighborhood": search_filter.neighborhood,
+        "bedroom_quantity": search_filter.bedroom_quantity,
+        "suite_quantity": search_filter.suite_quantity,
+        "bathroom_quantity": search_filter.bathroom_quantity,
+        "garage_slots_quantity": search_filter.garage_slots_quantity,
+        "min_price": search_filter.min_price,
+        "max_price": search_filter.max_price,
+        "min_area": search_filter.min_area,
+        "max_area": search_filter.max_area,
+    }
+
+    data_out_dict = {"id": radar.id, "name": radar.name, "filter": filter_dict}
 
     data_out = serializer(data=data_out_dict)
     if not data_out.is_valid():

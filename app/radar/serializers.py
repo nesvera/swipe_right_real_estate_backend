@@ -3,6 +3,7 @@ from rest_framework import serializers
 from radar.models import RadarRealEstate
 
 from common.pagination.serializers import PaginationSerializer
+from search.serializers import FilterRetrieveSerializer
 
 
 class RadarCreateSerializer(serializers.Serializer):
@@ -17,6 +18,7 @@ class RadarRetrieveSerializer(serializers.Serializer):
 
     id = serializers.UUIDField()
     name = serializers.CharField()
+    filter = FilterRetrieveSerializer()
 
 
 class RadarListSerializer(PaginationSerializer):

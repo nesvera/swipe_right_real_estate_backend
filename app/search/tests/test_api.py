@@ -177,7 +177,7 @@ class PublicApiTests(TestCase):
 
     def test_public_retrieve_fail_id_not_found(self):
         client = APIClient()
-        url = "search:search-pk", args=["be6c0d14-72ec-4b95-8c75-93b710868f7d"])
+        url = reverse("search:search-pk", args=["be6c0d14-72ec-4b95-8c75-93b710868f7d"])
 
         res = client.get(url)
 

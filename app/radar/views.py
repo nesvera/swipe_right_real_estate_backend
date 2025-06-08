@@ -62,6 +62,8 @@ class RadarView(
         except services.InvalidSearchIdError:
             return Response("Invalid search ID", status=status.HTTP_400_BAD_REQUEST)
 
+        # TODO - how to revert the changes in the database in case something fails?
+
         try:
             response = services.serialize_create_radar(
                 RadarRetrieveSerializer, radar_obj
@@ -220,12 +222,16 @@ class RadarRealEstateView(
             return Response("", status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            data_in = services.deserialize_update_radar_real_estate(RadarRealEstateUpdateSerializer, request.data)
+            data_in = services.deserialize_update_radar_real_estate(
+                RadarRealEstateUpdateSerializer, request.data
+            )
         except DeserializationError as e:
             print(f"Failed to deserialize radar real estate while update. Error: {e}.")
             return Response(e.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        radar_real_estate = services.update_radar_real_estate(radar_real_estate, data_in)
+        radar_real_estate = services.update_radar_real_estate(
+            radar_real_estate, data_in
+        )
 
         try:
             response = services.serialize_radar_real_estate_retrieve(
