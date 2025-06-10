@@ -212,6 +212,30 @@ class PrivateApiTest(TestCase):
         client.force_authenticate(user=self.user)
 
         radar = RadarFactory(created_by=self.user)
+        real_estate_1 = RealEstateFactory()
+        RadarRealEstateFactory(
+            radar=radar,
+            real_estate=real_estate_1,
+            preference=RadarRealEstate.Preference.LIKE,
+        )
+        real_estate_2 = RealEstateFactory()
+        RadarRealEstateFactory(
+            radar=radar,
+            real_estate=real_estate_2,
+            preference=RadarRealEstate.Preference.DISLIKE,
+        )
+        real_estate_3 = RealEstateFactory()
+        RadarRealEstateFactory(
+            radar=radar,
+            real_estate=real_estate_3,
+            preference=RadarRealEstate.Preference.PENDING,
+        )
+        real_estate_4 = RealEstateFactory()
+        RadarRealEstateFactory(
+            radar=radar,
+            real_estate=real_estate_4,
+            removed_at=datetime.now(timezone.utc),
+        )
 
         url = reverse("radar:radar-id", args=[str(radar.id)])
 
@@ -220,8 +244,17 @@ class PrivateApiTest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn("id", res.data)
         self.assertIn("name", res.data)
+        self.assertIn("filter", res.data)
+        self.assertIn("real_estate", res.data)
         self.assertEqual(radar.id, res.data.get("id"))
         self.assertEqual(radar.name, res.data.get("name"))
+        self.assertEqual(res.data.get("real_estate", {}).get("like_count"), 1)
+        self.assertEqual(res.data.get("real_estate", {}).get("dislike_count"), 1)
+        self.assertEqual(res.data.get("real_estate", {}).get("pending_count"), 1)
+        self.assertEqual(res.data.get("real_estate", {}).get("removed_count"), 1)
+
+        # TODO - this is meme since the value is hardcoded
+        self.assertEqual(res.data.get("real_estate", {}).get("added_count"), 0)
 
     def test_retrieve_fail_id_not_exist(self):
         client = APIClient()

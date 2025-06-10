@@ -4,12 +4,13 @@ from datetime import datetime, timezone
 from rest_framework import serializers
 from django.http.request import QueryDict
 from django.db.models.query import QuerySet
+from django.db.models import Q, Count
 
 from common.errors.errors import SerializationError, DeserializationError
 
 from user.models import User
 from radar.models import Radar, RadarRealEstate
-from search.models import Search
+from search.models import Search, SearchResultRealEstate
 from real_estate.models import RealEstate
 
 
@@ -30,6 +31,41 @@ def deserializer_create_radar(
     return radar_dict
 
 
+def get_radar_real_estate_count(radar: Radar) -> Dict:
+    # real estate information
+    preference_count = RadarRealEstate.objects.values("preference").annotate(
+        count=Count("id", filter=Q(radar=radar, removed_at__isnull=True), distinct=True)
+    )
+    removed_count = RadarRealEstate.objects.filter(
+        radar=radar, removed_at__isnull=False
+    ).count()
+
+    # TODO - how to define if a real estate is new, or only the user did not see it yet (pending)?
+
+    real_estate_dict = {
+        "like_count": 0,
+        "dislike_count": 0,
+        "pending_count": 0,
+        "added_count": 0,
+        "removed_count": removed_count,
+    }
+
+    for preference in preference_count:
+        count = preference.get("count", 0)
+        preference_name = preference.get("preference", None)
+
+        if preference_name is None:
+            continue
+        elif preference_name == RadarRealEstate.Preference.PENDING:
+            real_estate_dict["pending_count"] = count
+        elif preference_name == RadarRealEstate.Preference.LIKE:
+            real_estate_dict["like_count"] = count
+        elif preference_name == RadarRealEstate.Preference.DISLIKE:
+            real_estate_dict["dislike_count"] = count
+
+    return real_estate_dict
+
+
 def serialize_create_radar(serializer: serializers.Serializer, radar: Radar) -> Dict:
     search_filter = radar.search.filter
 
@@ -48,7 +84,14 @@ def serialize_create_radar(serializer: serializers.Serializer, radar: Radar) -> 
         "max_area": search_filter.max_area,
     }
 
-    data_out_dict = {"id": radar.id, "name": radar.name, "filter": filter_dict}
+    real_estate_dict = get_radar_real_estate_count(radar)
+
+    data_out_dict = {
+        "id": radar.id,
+        "name": radar.name,
+        "filter": filter_dict,
+        "real_estate": real_estate_dict,
+    }
 
     data_out = serializer(data=data_out_dict)
     if not data_out.is_valid():
@@ -79,6 +122,14 @@ def create_radar(user: User, data: Dict) -> Radar:
     radar_obj = Radar.objects.create(
         created_by=user, name=data.get("name"), search=search_obj
     )
+
+    search_real_estate_filter = SearchResultRealEstate.objects.filter(search=search_obj)
+
+    # TODO - how to sync real_estate creation with async task?
+    for search_real_estate in search_real_estate_filter:
+        RadarRealEstate.objects.create(
+            radar=radar_obj, real_estate=search_real_estate.real_estate
+        )
 
     return radar_obj
 
@@ -154,6 +205,7 @@ def retrieve_radar(user: User, id: str) -> Radar:
 def serialize_retrieve_radar(serializer: serializers.Serializer, radar: Radar) -> Dict:
     search_filter = radar.search.filter
 
+    # filter information
     filter_dict = {
         "property_type": search_filter.property_type,
         "transaction_type": search_filter.transaction_type,
@@ -169,7 +221,14 @@ def serialize_retrieve_radar(serializer: serializers.Serializer, radar: Radar) -
         "max_area": search_filter.max_area,
     }
 
-    data_out_dict = {"id": radar.id, "name": radar.name, "filter": filter_dict}
+    real_estate_dict = get_radar_real_estate_count(radar)
+
+    data_out_dict = {
+        "id": radar.id,
+        "name": radar.name,
+        "real_estate": real_estate_dict,
+        "filter": filter_dict,
+    }
 
     data_out = serializer(data=data_out_dict)
     if not data_out.is_valid():

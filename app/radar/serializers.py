@@ -13,7 +13,26 @@ class RadarCreateSerializer(serializers.Serializer):
     search = serializers.UUIDField()
 
 
+class RadarRetrieveRealEstateSerializer(serializers.Serializer):
+    """Information about real estate related to a radar"""
+
+    like_count = serializers.IntegerField()
+    dislike_count = serializers.IntegerField()
+    pending_count = serializers.IntegerField()
+    added_count = serializers.IntegerField()
+    removed_count = serializers.IntegerField()
+
+
 class RadarRetrieveSerializer(serializers.Serializer):
+    """Used to retrieve Radars"""
+
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    real_estate = RadarRetrieveRealEstateSerializer()
+    filter = FilterRetrieveSerializer()
+
+
+class RadarListItemSerializer(serializers.Serializer):
     """Used to retrieve Radars"""
 
     id = serializers.UUIDField()
@@ -24,7 +43,7 @@ class RadarRetrieveSerializer(serializers.Serializer):
 class RadarListSerializer(PaginationSerializer):
     """Used to list Radars"""
 
-    data = RadarRetrieveSerializer(many=True)
+    data = RadarListItemSerializer(many=True)
 
 
 class RadarRealEstateListItemSerializer(serializers.Serializer):
