@@ -51,8 +51,8 @@ class RealEstate(models.Model):
     agency = models.ForeignKey(Agency, on_delete=models.CASCADE)
     cond_price = models.FloatField()
     description = models.CharField(max_length=2000)
-    images_url = ArrayField(
-        models.CharField(max_length=250, default=""),
+    thumb_url = ArrayField(
+        models.CharField(max_length=500, default=""),
         default=get_images_url_default,
         size=50,
     )

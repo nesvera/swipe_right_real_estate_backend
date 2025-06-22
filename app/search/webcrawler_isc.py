@@ -34,6 +34,7 @@ class WebsiteISCRealEstateInfo:
     space: str = ""
     price: str = ""
     agency: WebsiteISCAgencyInfo = None
+    thumb_urls: List[str] = []
 
     def __init__(
         self,
@@ -49,6 +50,7 @@ class WebsiteISCRealEstateInfo:
         space: str,
         price: str,
         agency: WebsiteISCAgencyInfo,
+        thumb_urls: List[str],
     ):
         self.code = code
         self.model = model
@@ -62,6 +64,7 @@ class WebsiteISCRealEstateInfo:
         self.space = space
         self.price = price
         self.agency = agency
+        self.thumb_urls = thumb_urls
 
 
 class WebsiteISCFilter:
@@ -334,28 +337,50 @@ class WebcrawlerISCRealEstate:
             page,
             "html.parser",
         )
+
+        # article sections contains description and carousel images
         imoveis_soup = soup.find_all(
-            "div",
-            class_="imovel-data",
+            "article",
+            class_=re.compile(r"imovel"),
         )
 
         if len(imoveis_soup) == 0:
             return None
 
         real_estate_list = []
-        for imovel_tag in imoveis_soup:
-            model = self.get_model(imovel_tag)
-            code = self.get_code(imovel_tag)
-            neighborhood = self.get_neighborhood(imovel_tag)
-            city = self.get_city(imovel_tag)
-            summary = self.get_summary(imovel_tag)
-            url = self.get_url(imovel_tag)
-            bedrooms = self.get_bedrooms(imovel_tag)
-            suite = self.get_suite(imovel_tag)
-            garage_slots = self.get_garage_slots(imovel_tag)
-            space = self.get_space(imovel_tag)
-            price = self.get_price(imovel_tag)
-            agency = self.get_agency_info(imovel_tag)
+        for imovel_article in imoveis_soup:
+            imovel_data = imovel_article.find(
+                "div",
+                class_="imovel-data",
+            )
+
+            model = self.get_model(imovel_data)
+            code = self.get_code(imovel_data)
+            neighborhood = self.get_neighborhood(imovel_data)
+            city = self.get_city(imovel_data)
+            summary = self.get_summary(imovel_data)
+            url = self.get_url(imovel_data)
+            bedrooms = self.get_bedrooms(imovel_data)
+            suite = self.get_suite(imovel_data)
+            garage_slots = self.get_garage_slots(imovel_data)
+            space = self.get_space(imovel_data)
+            price = self.get_price(imovel_data)
+            agency = self.get_agency_info(imovel_data)
+
+            carousel_div = imovel_article.find(
+                "div",
+                class_=re.compile(r"imovel-imagem"),
+            )
+
+            image_urls = []
+
+            if carousel_div:
+                image_tags = carousel_div.find_all("img")
+
+                for img in image_tags:
+                    url = img.get("data-src")
+                    if url:
+                        image_urls.append(url)
 
             imovel_info = WebsiteISCRealEstateInfo(
                 code=code,
@@ -370,6 +395,7 @@ class WebcrawlerISCRealEstate:
                 space=space,
                 price=price,
                 agency=agency,
+                thumb_urls=image_urls,
             )
 
             real_estate_list.append(imovel_info)

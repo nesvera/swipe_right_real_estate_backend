@@ -127,7 +127,7 @@ def create_real_estate_object(
             agency=agency_obj,
             cond_price=0.0,
             description="",
-            images_url=[],
+            thumb_url=real_estate_info.thumb_urls,
             url=real_estate_info.url,
         )
         re_obj.save()
