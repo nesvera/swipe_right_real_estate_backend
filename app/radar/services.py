@@ -263,12 +263,26 @@ def list_real_estate(
 
 
 def serialize_real_estate_list(
-    serializer: serializers.Serializer, radar_real_estates: List[RealEstate]
+    serializer: serializers.Serializer, radar_real_estates: List[RadarRealEstate]
 ) -> Dict:
     radar_real_estate_list = []
 
     for radar_re in radar_real_estates:
-        re_dict = {"id": radar_re.id}
+        re_dict = {
+            "id": radar_re.id,
+            "property_type": radar_re.real_estate.property_type,
+            "transaction_type": radar_re.real_estate.transaction_type,
+            "city": radar_re.real_estate.city,
+            "neighborhood": radar_re.real_estate.neighborhood,
+            "bedroom_quantity": radar_re.real_estate.bedroom_quantity,
+            "suite_quantity": radar_re.real_estate.suite_quantity,
+            "garage_slots_quantity": radar_re.real_estate.garage_slots_quantity,
+            "price": radar_re.real_estate.price,
+            "condo_price": radar_re.real_estate.cond_price,
+            "area": radar_re.real_estate.area,
+            "area_total": radar_re.real_estate.area_total,
+            "thumb_urls": radar_re.real_estate.thumb_url,
+        }
 
         radar_real_estate_list.append(re_dict)
 

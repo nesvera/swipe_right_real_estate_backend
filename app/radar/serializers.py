@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from radar.models import RadarRealEstate
+from real_estate.models import RealEstate
 
 from common.pagination.serializers import PaginationSerializer
 from search.serializers import FilterRetrieveSerializer
@@ -50,6 +51,18 @@ class RadarRealEstateListItemSerializer(serializers.Serializer):
     """Item inside the list of real estates from a radar"""
 
     id = serializers.UUIDField()
+    property_type = serializers.ChoiceField(choices=RealEstate.PropertyType)
+    transaction_type = serializers.ChoiceField(choices=RealEstate.TransactionType)
+    city = serializers.CharField(max_length=100)
+    neighborhood = serializers.CharField(max_length=100)
+    bedroom_quantity = serializers.IntegerField(min_value=0)
+    suite_quantity = serializers.IntegerField(min_value=0)
+    garage_slots_quantity = serializers.IntegerField(min_value=0)
+    price = serializers.FloatField(min_value=0.0)
+    condo_price = serializers.FloatField(min_value=0.0)
+    area = serializers.FloatField(min_value=0.0)
+    area_total = serializers.FloatField(min_value=0.0)
+    thumb_urls = serializers.ListField(child=serializers.CharField(max_length=500))
 
 
 class RadarRealEstateListSerializer(PaginationSerializer):
