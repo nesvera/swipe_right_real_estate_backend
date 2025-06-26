@@ -195,6 +195,7 @@ def serialize_search_result(queryset: List[SearchResultRealEstate]) -> Dict:
             "condo_price": search_result_element.real_estate.cond_price,
             "area": search_result_element.real_estate.area,
             "area_total": search_result_element.real_estate.area_total,
+            "thumb_urls": search_result_element.real_estate.thumb_url,
         }
 
         real_estate_list.append(data_out)
