@@ -30,7 +30,7 @@ class SearchView(
 
     serializer_class = None
     queryset = Search.objects.none()
-    authentication_classes = [authentication.JWTAuthentication]
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
     # TODO - how to allow unauthenticated, and authenticated to access it?
     # TODO - the filter model has a key for user, how to handle it?
@@ -123,7 +123,7 @@ class SearchResultView(
 
     serializer_class = None
     queryset = QuerySet.none
-    authentication_classes = [authentication.JWTAuthentication]
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
 
     def get_serializer_class(self):
