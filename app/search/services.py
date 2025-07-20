@@ -153,6 +153,7 @@ def create_search(user: User, data: Dict) -> Search:
     filter_obj = Filter.objects.create(created_by=request_user, **data)
     search_obj = Search.objects.create(created_by=request_user, filter=filter_obj)
 
+    # TODO - trigger function
     crawl_isc_real_estate_search.delay(search_obj.id)
 
     return search_obj

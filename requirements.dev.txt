@@ -1,3 +1,4 @@
 flake8>=7.2.0,<7.3.0
 parameterized>=0.9.0,<1.0
 factory-boy>=3.3.3,<3.4
+functions-framework>=3.8.3,<3.9
