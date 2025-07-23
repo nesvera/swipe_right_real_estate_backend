@@ -8,14 +8,27 @@ from database import (
     get_filter_property_type,
     get_filter_fields,
     set_search_number_real_estate_found,
-    set_search_query_status
+    set_search_query_status,
+    get_real_estate_by_reference_code,
+    get_agency_by_profile_url,
+    insert_agency,
+    insert_real_estate,
+    ObjectNotFoundError,
+    GenericInsertError
 )
-from webcrawler_isc import WebsiteISCFilter, WebcrawlerISCRealEstate
+from webcrawler_isc import (
+    WebsiteISCFilter,
+    WebcrawlerISCRealEstate,
+    WebsiteISCRealEstateInfo,
+)
 
 
 def create_isc_filter(search_id: str) -> WebsiteISCFilter:
 
-    filter_fields = get_filter_fields(search_id=search_id)
+    try:
+        filter_fields = get_filter_fields(search_id=search_id)
+    except ObjectNotFoundError:
+        raise ObjectNotFoundError(f"search ID {search_id} not found")
 
     # TODO - probably it is better to raise an error instead of given a default
     filter_property_type = filter_fields.get("property_type", [])
@@ -104,10 +117,149 @@ def create_isc_filter(search_id: str) -> WebsiteISCFilter:
     return isc_filter
 
 
+def extract_property_type_from_url(real_estate_url: str) -> RealEstate.PropertyType:
+    url_parts = real_estate_url.split("/")
+    if len(url_parts) < 5:
+        return RealEstate.PropertyType.APARTMENT
+
+    property_type = url_parts[5]
+    if property_type == "apartamento":
+        return RealEstate.PropertyType.APARTMENT
+    elif property_type == "casa":
+        return RealEstate.PropertyType.HOUSE
+    elif property_type == "terreno":
+        return RealEstate.PropertyType.TERRAIN
+    elif property_type == "sala-escritorio":
+        return RealEstate.PropertyType.OFFICE
+    elif property_type == "galpao":
+        return RealEstate.PropertyType.WAREHOUSE
+    elif property_type == "imovel-rural":
+        return RealEstate.PropertyType.RURAL
+    else:
+        return RealEstate.PropertyType.HOUSE
+
+
+def extract_transaction_type_from_url(
+    real_estate_url: str,
+) -> RealEstate.TransactionType:
+    url_parts = real_estate_url.split("/")
+    if len(url_parts) < 4:
+        return RealEstate.TransactionType.BUY
+
+    property_type = url_parts[4]
+    if property_type == "comprar":
+        return RealEstate.TransactionType.BUY
+    else:
+        return RealEstate.TransactionType.RENT
+
+
+def convert_values_to_float(value: str) -> float:
+    tmp_value = value.replace(".", "")
+    tmp_value = tmp_value.replace(",", ".")
+    try:
+        tmp_value = float(tmp_value)
+    except:
+        print(f"Fail to convert to float {value}")
+        tmp_value = 0.0
+
+    return tmp_value
+
+
+# TODO - improve error handling
+def create_real_estate_object(
+    real_estate_info: WebsiteISCRealEstateInfo, search_obj: Search
+) -> None:
+    print(f"Creating real estate object for code {real_estate_info.code}")
+    try:
+        agency_obj = get_agency_by_profile_url(
+            profile_url=real_estate_info.agency.profile_url
+        )
+    except ObjectNotFoundError:
+        try:
+            print(f"Creating agency object for name {real_estate_info.agency.name}")
+            insert_agency(
+                name=real_estate_info.agency.name,
+                logo_url=real_estate_info.agency.logo_url,
+                profile_url=real_estate_info.agency.profile_url,
+                creci="",
+                city="",
+                address_street="",
+                address_number="",
+                contact_number_1="",
+                contact_number_2="",
+                contact_whatsapp="",
+            )
+
+        except Exception as e:
+            print(
+                f"Failed to create agency object for name {real_estate_info.agency.name}. Error: {e}."
+            )
+            return None
+
+    property_type = extract_property_type_from_url(real_estate_info.url)
+    transaction_type = extract_transaction_type_from_url(real_estate_info.url)
+    price = convert_values_to_float(real_estate_info.price)
+    area = convert_values_to_float(real_estate_info.space)
+
+    bedrooms = real_estate_info.bedrooms
+    if len(bedrooms) == 0:
+        bedrooms = 0
+
+    suites = real_estate_info.suite
+    if len(suites) == 0:
+        suites = 0
+
+    garage_slots = real_estate_info.garage_slots
+    if len(garage_slots) == 0:
+        garage_slots = 0
+
+    try:
+        insert_real_estate(
+            reference_code=real_estate_info.code,
+            property_type=property_type,
+            transaction_type=transaction_type,
+            city=real_estate_info.city,
+            neighborhood=real_estate_info.neighborhood,
+            bedroom_quantity=bedrooms,
+            suite_quantity=suites,
+            bathroom_quantity=0,
+            garage_slots_quantity=garage_slots,
+            price=price,
+            area=area,
+            area_total=area,
+            available=True,
+            agency=agency_obj.get("id"),
+            cond_price=0.0,
+            description="",
+            thumb_url=real_estate_info.thumb_urls,
+            url=real_estate_info.url,
+        )
+        return None
+    except Exception as e:
+        print(
+            f"Failed to create real estate object for code {real_estate_info.code}. Error: {e}."
+        )
+        return None
+
+
+def update_real_estate_object(
+    re_object: dict,
+    real_estate_info: WebsiteISCRealEstateInfo,
+    search_obj: Search,
+):
+    print(f"Updating ID {re_object.get("id")} - Code {real_estate_info.code}")
+    pass
+
+
 def crawler(request):
+    """Entry function for cloud function"""
     search_id = request.args.get("search_id")
 
-    isc_filter = create_isc_filter(search_id=search_id)
+    try:
+        isc_filter = create_isc_filter(search_id=search_id)
+    except ObjectNotFoundError:
+        print("Failed to create ISC filter")
+        return "failed"
 
     crawler = WebcrawlerISCRealEstate()
     crawler.set_filter(isc_filter)
@@ -124,17 +276,14 @@ def crawler(request):
             for real_estate in real_estate_list:
                 print(real_estate.code)
                 try:
-                    # real_estate_obj = RealEstate.objects.get(
-                    #    reference_code=real_estate.code
-                    # )
-                    # update_real_estate_object(real_estate_obj, real_estate, search_obj)
-                    # TODO - how to update real estate objects
-                    pass
+                    real_estate_obj = get_real_estate_by_reference_code(
+                        reference_code=real_estate.code
+                    )
+                    update_real_estate_object(real_estate_obj, real_estate, search_obj)
 
-                except RealEstate.DoesNotExist:
-                    # real_estate_obj = create_real_estate_object(real_estate, search_obj)
-                    # TODO - how to create real estate objects
-                    pass
+                except ObjectNotFoundError:
+                    print(f"Reference code {real_estate.code} NOT found.")
+                    real_estate_obj = create_real_estate_object(real_estate, search_obj)
 
                 except Exception as e:
                     print(
