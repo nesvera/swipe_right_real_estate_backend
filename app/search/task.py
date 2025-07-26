@@ -1,6 +1,5 @@
 import traceback
 
-from celery import shared_task
 from uuid import UUID
 from typing import List, Optional
 
@@ -218,7 +217,6 @@ def create_isc_filter(search_obj: Search) -> WebsiteISCFilter:
     return isc_filter
 
 
-@shared_task(queue="default")
 def crawl_isc_real_estate_search(search_id: UUID) -> None:
     try:
         search_obj = Search.objects.get(id=search_id)
@@ -271,13 +269,3 @@ def crawl_isc_real_estate_search(search_id: UUID) -> None:
 
     search_obj.query_status = Search.QueryStatus.FINISHED
     search_obj.save()
-
-
-@shared_task
-def crawl_isc_real_estate_get_details():
-    pass
-
-
-@shared_task
-def crawl_isc_agency_get_details():
-    pass

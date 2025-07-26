@@ -23,11 +23,6 @@ services:
       - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
       - DJANGO_SECRET=${DJANGO_SECRET}
       - DJANGO_DEBUG=${DJANGO_DEBUG}
-      - RABBITMQ_HOST=${RABBITMQ_HOST}
-      - RABBITMQ_PORT=${RABBITMQ_PORT}
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
-      - CLOUD_FUNCTION_CRAWLER_URL=${CLOUD_FUNCTION_CRAWLER_URL}
     depends_on:
       - db
 
@@ -43,43 +38,6 @@ services:
       - POSTGRES_DB=${POSTGRES_NAME}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASS}
-
-  celery:
-    container_name: celery
-    build:
-      context: .
-      args:
-        - DEV=true
-    environment:
-      - POSTGRES_HOST=${POSTGRES_HOST}
-      - POSTGRES_NAME=${POSTGRES_NAME}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASS=${POSTGRES_PASS}
-      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
-      - DJANGO_SECRET=${DJANGO_SECRET}
-      - DJANGO_DEBUG=${DJANGO_DEBUG}
-      - RABBITMQ_HOST=${RABBITMQ_HOST}
-      - RABBITMQ_PORT=${RABBITMQ_PORT}
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
-    command: >
-      sh -c "python manage.py wait_for_db &&
-             celery -A app worker --loglevel=info -Q default"
-    volumes:
-      - ./app:/app
-    depends_on:
-      - backend
-      - rabbitmq
-
-  rabbitmq:
-    image: rabbitmq:4.1.0-management-alpine
-    container_name: rabbitmq
-    environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
-    ports:
-      - "5672:5672"
-      - "15672:15672"
 
 volumes:
   dev-db-data:
