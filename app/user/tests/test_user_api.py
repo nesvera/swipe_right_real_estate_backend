@@ -9,6 +9,8 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
+from unittest.mock import patch
+
 REFRESH_URL = reverse("user:refresh")
 
 
@@ -17,6 +19,7 @@ def create_user(**params):
     return get_user_model().objects.create_user(**params)
 
 
+@patch("rest_framework.throttling.AnonRateThrottle.get_rate", lambda x: "1000/minute")
 class PublicApiTests(TestCase):
     """Test public features of user API."""
 
@@ -125,6 +128,7 @@ class PublicApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+@patch("rest_framework.throttling.UserRateThrottle.get_rate", lambda x: "1000/minute")
 class PrivateApiTests(TestCase):
     """Test API requests that require authentication."""
 

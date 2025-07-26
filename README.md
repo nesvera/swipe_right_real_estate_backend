@@ -13,10 +13,22 @@ make build
 make run
 ```
 
-## Run unit tests
+## Tests
+
+Use the following command to run tests.
 ```
 make test
 ```
+
+Tests via API call requires patch of throttling mechanism from Django, if not tets may fail since server may return status code 429.
+
+You can patch the TestCase class as showing below.
+```
+@patch("rest_framework.throttling.AnonRateThrottle.get_rate", lambda x: "1000/minute")
+@patch("rest_framework.throttling.UserRateThrottle.get_rate", lambda x: "1000/minute")
+class PublicApiTests(TestCase):
+```
+
 
 ## Run migration after changing Django models
 ```

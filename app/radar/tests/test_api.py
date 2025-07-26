@@ -19,6 +19,7 @@ from radar.factories import RadarFactory, RadarRealEstateFactory
 from real_estate.factories import RealEstateFactory
 
 
+@patch("rest_framework.throttling.AnonRateThrottle.get_rate", lambda x: "1000/minute")
 class PublicApiTests(TestCase):
     """
     Test endpoint with unauthenticated user
@@ -82,6 +83,7 @@ class PublicApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+@patch("rest_framework.throttling.UserRateThrottle.get_rate", lambda x: "1000/minute")
 class PrivateApiTest(TestCase):
     """
     Test private usage of endpoints once user is authenticated
