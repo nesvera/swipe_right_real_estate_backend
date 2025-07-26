@@ -107,6 +107,9 @@ class SearchResultRealEstateSerializer(serializers.Serializer):
     condo_price = serializers.FloatField(min_value=0.0)
     area = serializers.FloatField(min_value=0.0)
     area_total = serializers.FloatField(min_value=0.0)
+    thumb_urls = serializers.ListField(
+        child=serializers.CharField(max_length=500), allow_empty=True
+    )
 
 
 class SearchResultListSerializer(PaginationSerializer):

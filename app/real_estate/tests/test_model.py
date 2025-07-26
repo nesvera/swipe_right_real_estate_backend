@@ -40,7 +40,7 @@ class TestModel(TestCase):
             "agency": agency,
             "cond_price": 12.0,
             "description": "some nice real estate to be sold",
-            "images_url": [
+            "thumb_url": [
                 "https://some-nice-image1.png",
                 "https://some-nice-image2.png",
                 "https://some-nice-image3.png",

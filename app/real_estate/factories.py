@@ -24,5 +24,5 @@ class RealEstateFactory(factory.django.DjangoModelFactory):
     agency = factory.SubFactory(AgencyFactory)
     cond_price = 200.0
     description = "small apartment"
-    images_url = []
+    thumb_url = []
     url = "https://apt1.com"
