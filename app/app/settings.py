@@ -160,6 +160,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://umnovolar.com.br",
+    "https://swipe-right-real-estate-365197240425.southamerica-east1.run.app"
 ]
 
 SIMPLE_JWT = {
