@@ -141,6 +141,14 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '10/minute',
+        'user': '100/minute'
+    }
 }
 
 CORS_ALLOWED_ORIGINS = [
@@ -160,12 +168,3 @@ SIMPLE_JWT = {
 SPECTACULAR_SETTINGS = {
     "COMPONENT_SPLIT_REQUEST": True,
 }
-
-RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST")
-RABBITMQ_PORT = os.environ.get("RABBITMQ_PORT")
-RABBITMQ_USER = os.environ.get("RABBITMQ_DEFAULT_USER")
-RABBITMQ_PASS = os.environ.get("RABBITMQ_DEFAULT_PASS")
-
-CELERY_BROKER_URL = (
-    f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@{RABBITMQ_HOST}:{RABBITMQ_PORT}//"
-)

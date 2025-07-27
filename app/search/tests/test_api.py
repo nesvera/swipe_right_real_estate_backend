@@ -73,7 +73,7 @@ def create_real_estate(search_obj: Search) -> RealEstate:
         "agency": agency_obj,
         "cond_price": 12.0,
         "description": "some nice real estate to be sold",
-        "images_url": [
+        "thumb_url": [
             "https://some-nice-image1.png",
             "https://some-nice-image2.png",
             "https://some-nice-image3.png",
@@ -94,6 +94,7 @@ def create_multiple_search(n: int, user: User = None) -> None:
         create_search(user)
 
 
+@patch("rest_framework.throttling.AnonRateThrottle.get_rate", lambda x: "1000/minute")
 class PublicApiTests(TestCase):
     """
     Test public features where user is not authenticated
@@ -215,6 +216,7 @@ class PublicApiTests(TestCase):
         self.assertEqual(res.data.get("meta").get("total_pages"), 0)
 
 
+@patch("rest_framework.throttling.UserRateThrottle.get_rate", lambda x: "1000/minute")
 class PrivateApiTest(TestCase):
     """
     Test private usage of endpoints once user is authenticated
