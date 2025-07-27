@@ -90,6 +90,7 @@ class ManageUserView(
 
 class CreateUser(APIView):
     serializer_class = UserSerializer
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
 
     def post(self, request: Request, format=None) -> Response:
