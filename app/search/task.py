@@ -91,6 +91,11 @@ def create_real_estate_object(
             )
             return None
 
+    if real_estate_info.url is None:
+        raise ValueError(
+            f"Failed to create real estate {real_estate_info.code} - URL is None"
+        )
+
     property_type = extract_property_type_from_url(real_estate_info.url)
     transaction_type = extract_transaction_type_from_url(real_estate_info.url)
     price = convert_values_to_float(real_estate_info.price)
@@ -245,7 +250,16 @@ def crawl_isc_real_estate_search(search_id: UUID) -> None:
                     update_real_estate_object(real_estate_obj, real_estate, search_obj)
 
                 except RealEstate.DoesNotExist:
-                    real_estate_obj = create_real_estate_object(real_estate, search_obj)
+
+                    try:
+                        real_estate_obj = create_real_estate_object(
+                            real_estate, search_obj
+                        )
+                    except Exception as e:
+                        print(
+                            f"Fail to save real estate object code {real_estate.code} - URL {real_estate.url}. Error: {e}."
+                        )
+                        continue
 
                 except Exception as e:
                     print(
