@@ -382,9 +382,9 @@ class WebcrawlerISCRealEstate:
                 image_tags = carousel_div.find_all("img")
 
                 for img in image_tags:
-                    url = img.get("data-src")
-                    if url:
-                        image_urls.append(url)
+                    img_url = img.get("data-src")
+                    if img_url:
+                        image_urls.append(img_url)
 
             imovel_info = WebsiteISCRealEstateInfo(
                 code=code,
