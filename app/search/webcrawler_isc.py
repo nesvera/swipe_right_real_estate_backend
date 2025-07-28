@@ -333,10 +333,14 @@ class WebcrawlerISCRealEstate:
         self,
         page: str = "",
     ) -> List[WebsiteISCRealEstateInfo]:
-        soup = BeautifulSoup(
-            page,
-            "html.parser",
-        )
+        try:
+            soup = BeautifulSoup(
+                page,
+                "html.parser",
+            )
+        except Exception as e:
+            print("Failed to parsers page")
+            return None
 
         # article sections contains description and carousel images
         imoveis_soup = soup.find_all(
