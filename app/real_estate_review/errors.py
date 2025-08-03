@@ -1,0 +1,2 @@
+class InvalidRealEstateReviewIdError(Exception):
+    pass

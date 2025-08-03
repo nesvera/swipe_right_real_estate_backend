@@ -33,5 +33,6 @@ urlpatterns = [
     ),
     path("api/", include("user.urls")),
     path("api/", include("radar.urls")),
-    path("api/", include("search.urls"))
+    path("api/", include("search.urls")),
+    path("api/", include("real_estate_review.urls"))
 ]

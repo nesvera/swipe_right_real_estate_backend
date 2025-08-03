@@ -1,0 +1,2 @@
+class InvalidRadarRealEstateIdError(Exception):
+    pass

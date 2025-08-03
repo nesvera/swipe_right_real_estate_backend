@@ -20,6 +20,20 @@ Use the following command to run tests.
 make test
 ```
 
+You can run specific tests from an app
+```
+make test path=real_estate_review
+```
+
+You can run even more specific test by choosing the file, test suite or test case
+```
+make test path=real_estate_review.tests.test_model
+make test path=real_estate_review.tests.test_model.TestRealEstateReviewModels
+make test path=real_estate_review.tests.test_model.TestRealEstateReviewModels.test_radar_real_estate_review_creation_success_min_info
+```
+
+
+
 Tests via API call requires patch of throttling mechanism from Django, if not tets may fail since server may return status code 429.
 
 You can patch the TestCase class as showing below.
