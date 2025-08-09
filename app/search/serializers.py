@@ -5,14 +5,13 @@ Serializers for search API
 from rest_framework import serializers
 from common.pagination.serializers import PaginationSerializer
 
-from search.models import Search, Filter
+from search.models import Search
 from real_estate.models import RealEstate
 
 
 class SearchCreateSerializer(serializers.Serializer):
     """Serializer for request to create search"""
 
-    # property_type  = serializers.ListField(child=)
     property_type = serializers.ListField(
         child=serializers.ChoiceField(choices=RealEstate.PropertyType),
         allow_empty=False,

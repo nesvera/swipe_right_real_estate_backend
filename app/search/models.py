@@ -2,8 +2,8 @@ import uuid
 
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.auth import get_user_model
 
-from user.models import User
 from real_estate.models import RealEstate
 
 
@@ -13,7 +13,7 @@ class Filter(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, blank=True, null=True
+        get_user_model(), on_delete=models.SET_NULL, blank=True, null=True
     )
     property_type = ArrayField(
         models.CharField(max_length=15, choices=RealEstate.PropertyType), null=True
@@ -47,7 +47,7 @@ class Search(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, blank=True, null=True
+        get_user_model(), on_delete=models.SET_NULL, blank=True, null=True
     )
     filter = models.ForeignKey(Filter, on_delete=models.CASCADE)
     query_status = models.CharField(

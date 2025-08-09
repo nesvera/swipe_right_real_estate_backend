@@ -1,7 +1,4 @@
 from typing import Dict, List
-import requests
-import os
-from asyncio import create_task
 
 from django.http.request import QueryDict
 from django.db.models.query import QuerySet
@@ -14,7 +11,7 @@ from search.serializers import (
     SearchResultListSerializer,
 )
 
-from user.models import User
+from django.contrib.auth.models import User
 
 from common.errors.errors import SerializationError, DeserializationError
 
