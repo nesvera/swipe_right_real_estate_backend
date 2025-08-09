@@ -2,6 +2,7 @@ from typing import Dict
 
 from rest_framework import serializers
 from django.http.request import QueryDict
+from django.contrib.auth.models import User
 
 from common.errors.errors import SerializationError, DeserializationError
 from real_estate_review.errors import InvalidRealEstateReviewIdError
@@ -9,7 +10,6 @@ from real_estate_review.errors import InvalidRealEstateReviewIdError
 from radar.models import RadarRealEstate
 from radar.errors import InvalidRadarRealEstateIdError
 from real_estate_review.models import RadarRealEstateReview
-from user.models import User
 
 
 def deserialize_create_real_estate_review(
@@ -122,13 +122,17 @@ def update_real_estate_review(
     """Update real estate review object in the database"""
 
     try:
-        real_estate_review_obj = RadarRealEstateReview.objects.get(id=real_estate_review_id)
+        real_estate_review_obj = RadarRealEstateReview.objects.get(
+            id=real_estate_review_id
+        )
     except RadarRealEstateReview.DoesNotExist:
         print(f"Real estate review ID {real_estate_review_id} does not exist")
         raise InvalidRealEstateReviewIdError
 
     if real_estate_review_obj.created_by != user:
-        print(f"Real estate review ID {real_estate_review_id} is not owned by {user.email} to be updated")
+        print(
+            f"Real estate review ID {real_estate_review_id} is not owned by {user.email} to be updated"
+        )
         raise InvalidRealEstateReviewIdError
 
     updated_fields = []

@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
-from user.models import User
+from django.contrib.auth import get_user_model
 from radar.models import RadarRealEstate
 
 
@@ -72,7 +72,7 @@ class RadarRealEstateReview(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     radar_real_estate = models.ForeignKey(RadarRealEstate, on_delete=models.CASCADE)
     preference = models.CharField(
         max_length=10,
@@ -80,6 +80,10 @@ class RadarRealEstateReview(models.Model):
         default=RadarRealEstate.Preference.PENDING,
     )
     rating = models.IntegerField()
-    good_tags = ArrayField(models.CharField(max_length=32, choices=Tags), size=10, null=True)
-    bad_tags = ArrayField(models.CharField(max_length=32, choices=Tags), size=10, null=True)
+    good_tags = ArrayField(
+        models.CharField(max_length=32, choices=Tags), size=10, null=True
+    )
+    bad_tags = ArrayField(
+        models.CharField(max_length=32, choices=Tags), size=10, null=True
+    )
     user_notes = models.CharField(max_length=250, default="")

@@ -3,13 +3,12 @@ Views for user API.
 """
 
 from django.contrib.auth import get_user_model
-from rest_framework import permissions, mixins, status, viewsets
+from rest_framework import permissions, mixins, status, viewsets, authentication
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.settings import api_settings
 from rest_framework.views import APIView
-from rest_framework_simplejwt import authentication
 from rest_framework.serializers import ModelSerializer
 
 from user.serializers import (

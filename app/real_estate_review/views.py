@@ -1,9 +1,12 @@
-from rest_framework import mixins, status, permissions, viewsets
+from rest_framework import mixins, status, permissions, viewsets, authentication
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
-from rest_framework_simplejwt import authentication
 from drf_spectacular.utils import extend_schema
+
+from allauth.headless.contrib.rest_framework.authentication import (
+    XSessionTokenAuthentication,
+)
 
 from common.errors.errors import DeserializationError, SerializationError
 from radar.errors import InvalidRadarRealEstateIdError
@@ -34,7 +37,10 @@ class RealEstateReviewView(
 
     serializer_class = None
     queryset = RadarRealEstateReview.objects.none()
-    authentication_classes = [authentication.JWTAuthentication]
+    authentication_classes = [
+        authentication.SessionAuthentication,
+        XSessionTokenAuthentication,
+    ]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self) -> ModelSerializer:

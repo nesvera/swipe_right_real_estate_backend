@@ -38,8 +38,14 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "corsheaders",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.headless",
+    "allauth.usersessions",
+    "allauth.socialaccount.providers.google",
     "core",
-    "user",
+    #"user",
     "real_estate",
     "real_estate_agency",
     "search",
@@ -57,10 +63,12 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "app.urls"
 
+# TODO - can I delete the templates since I not rendering pages in django?
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -139,14 +147,11 @@ STATIC_ROOT = "/vol/web/static"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-AUTH_USER_MODEL = "user.User"
+#AUTH_USER_MODEL = "user.User"
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ),
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -161,14 +166,61 @@ CORS_ALLOWED_ORIGINS = [
     "https://swipe-right-real-estate-365197240425.southamerica-east1.run.app",
 ]
 
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=30),
-    "SLIDING_TOKEN_LIFETIME": timedelta(days=30),
-    "SLIDING_TOKEN_REFRESH_LIFETIME_LATE_USER": timedelta(days=1),
-    "SLIDING_TOKEN_LIFETIME_LATE_USER": timedelta(days=30),
-}
+CORS_ORIGIN_WHITELIST = (
+    'localhost:8080',
+    'localhost:8081',
+    'localhost',
+    'localhost:8888',
+)
+
+CSRF_TRUSTED_ORIGINS = ['http://*', 'https://*']
 
 SPECTACULAR_SETTINGS = {
     "COMPONENT_SPLIT_REQUEST": True,
+    "EXTERNAL_DOCS": {"description": "allauth", "url": "/_allauth/openapi.html"},
 }
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "APP": {
+            "client_id": "",
+            "secret": "",
+        },
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+        "OAUTH_PKCE_ENABLED": True,
+    }
+}
+
+# Django allauth config
+EMAIL_HOST = "mail"
+EMAIL_PORT = 1025
+
+AUTHENTICATION_BACKENDS = ("allauth.account.auth_backends.AuthenticationBackend",)
+
+ACCOUNT_EMAIL_VERIFICATION = "none" #"mandatory"
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = False
+ACCOUNT_LOGIN_BY_CODE_ENABLED = True
+#ACCOUNT_EMAIL_VERIFICATION_BY_CODE_ENABLED = True
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+
+HEADLESS_ONLY = True
+HEADLESS_FRONTEND_URLS = {
+    "account_confirm_email": "/account/verify-email/{key}",
+    "account_reset_password": "/account/password/reset",
+    "account_reset_password_from_key": "/account/password/reset/key/{key}",
+    "account_signup": "/account/signup",
+    "socialaccount_login_error": "/account/provider/callback",
+}
+HEADLESS_SERVE_SPECIFICATION = True

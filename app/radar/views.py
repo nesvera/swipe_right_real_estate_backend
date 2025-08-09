@@ -1,11 +1,12 @@
-from django.db.models.query import QuerySet
-
-from rest_framework import mixins, status, permissions, viewsets
+from rest_framework import mixins, status, permissions, viewsets, authentication
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
-from rest_framework_simplejwt import authentication
 from drf_spectacular.utils import extend_schema
+
+from allauth.headless.contrib.rest_framework.authentication import (
+    XSessionTokenAuthentication,
+)
 
 from radar.models import Radar, RadarRealEstate
 from radar import services
@@ -34,7 +35,10 @@ class RadarView(
 
     serializer_class = RadarRetrieveSerializer
     queryset = Radar.objects.none()
-    authentication_classes = [authentication.JWTAuthentication]
+    authentication_classes = [
+        authentication.SessionAuthentication,
+        XSessionTokenAuthentication,
+    ]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self) -> ModelSerializer:
@@ -132,7 +136,10 @@ class RadarRealEstateListView(
 
     serializer_class = RadarRealEstateListSerializer
     queryset = RadarRealEstate.objects.none()
-    authentication_classes = [authentication.JWTAuthentication]
+    authentication_classes = [
+        authentication.SessionAuthentication,
+        XSessionTokenAuthentication,
+    ]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self) -> ModelSerializer:
@@ -183,7 +190,10 @@ class RadarRealEstateView(
 
     serializer_class = RadarRealEstateRetrieveSerializer
     queryset = RadarRealEstate.objects.none()
-    authentication_classes = [authentication.JWTAuthentication]
+    authentication_classes = [
+        authentication.SessionAuthentication,
+        XSessionTokenAuthentication,
+    ]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self) -> ModelSerializer:

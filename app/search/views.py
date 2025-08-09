@@ -1,12 +1,8 @@
 from django.db.models.query import QuerySet
-from django.contrib.auth.models import AnonymousUser
 
 from rest_framework import mixins, status, permissions, viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.serializers import ModelSerializer
-
-from rest_framework_simplejwt import authentication
 
 from search.models import Filter, Search
 from search.serializers import (

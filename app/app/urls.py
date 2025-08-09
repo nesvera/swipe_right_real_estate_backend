@@ -23,15 +23,17 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+# TODO - delete admin url
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("_allauth/", include("allauth.headless.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(
         "api/docs/",
         SpectacularSwaggerView.as_view(url_name="api-schema"),
         name="api-docs",
     ),
-    path("api/", include("user.urls")),
+    #path("api/", include("user.urls")),
     path("api/", include("radar.urls")),
     path("api/", include("search.urls")),
     path("api/", include("real_estate_review.urls"))
