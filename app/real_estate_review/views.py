@@ -38,7 +38,7 @@ class RealEstateReviewView(
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self) -> ModelSerializer:
-        return None
+        return RealEstateReviewCreateSerializer
 
     @extend_schema(
         request=RealEstateReviewCreateSerializer,
