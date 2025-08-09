@@ -8,7 +8,7 @@ from django.db.models import Q, Count
 
 from common.errors.errors import SerializationError, DeserializationError
 
-from user.models import User
+from django.contrib.auth.models import User
 from radar.models import Radar, RadarRealEstate
 from search.models import Search, SearchResultRealEstate
 from real_estate.models import RealEstate

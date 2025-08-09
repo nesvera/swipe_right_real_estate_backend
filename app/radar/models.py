@@ -2,7 +2,7 @@ import uuid
 
 from django.db import models
 
-from user.models import User
+from django.contrib.auth import get_user_model
 from search.models import Search
 from real_estate.models import RealEstate
 
@@ -15,7 +15,7 @@ class Radar(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, default="")
     created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
     search = models.ForeignKey(Search, on_delete=models.CASCADE)
 
 

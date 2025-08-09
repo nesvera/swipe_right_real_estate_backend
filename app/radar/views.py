@@ -7,7 +7,6 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework_simplejwt import authentication
 from drf_spectacular.utils import extend_schema
 
-from user.models import User
 from radar.models import Radar, RadarRealEstate
 from radar import services
 
