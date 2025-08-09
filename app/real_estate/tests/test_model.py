@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from real_estate.models import RealEstate, RealEstateUpdate
+from real_estate.models import RealEstate
 from real_estate_agency.models import Agency
 
 
