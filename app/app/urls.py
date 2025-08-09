@@ -25,7 +25,6 @@ from drf_spectacular.views import (
 
 # TODO - delete admin url
 urlpatterns = [
-    path("admin/", admin.site.urls),
     path("_allauth/", include("allauth.headless.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
     path(
